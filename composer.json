@@ -2,9 +2,8 @@
     "name": "ceroot/think-modelinfo",
     "description": "modelinfo package for SpringYang",
     "type": "library",
-    "homepage": "https://github.com/ceroot/think-modelinfo",
+    "homepage": "https://www.benweng.com",
     "license": "Apache-2.0",
-    "minimum-stability": "dev",
     "version": "1.0.2",
     "authors": [
         {
