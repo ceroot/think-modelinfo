@@ -4,7 +4,8 @@
     "type": "library",
     "homepage": "https://www.benweng.com",
     "license": "Apache-2.0",
-    "version": "1.0.2",
+    "minimum-stability": "dev",
+    "version": "1.0.3",
     "authors": [
         {
             "name": "SpringYang",
