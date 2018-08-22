@@ -1,0 +1,29 @@
+{
+    "name": "ceroot/think-modelinfo",
+    "description": "modelinfo package for SpringYang",
+    "type": "library",
+    "homepage": "https://github.com/ceroot/think-modelinfo",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "SpringYang",
+            "email": "ceroot@163.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/ceroot/think-modelinfo/issues"
+    },
+    "require": {
+        "php": ">=5.6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ceroot\\": "src/"
+        },
+        "files": [
+            "src/common.php"
+        ]
+    }
+}
