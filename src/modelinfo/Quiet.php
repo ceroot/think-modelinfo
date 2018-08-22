@@ -9,27 +9,23 @@
 
 namespace ceroot\modelinfo;
 
-use think\Exception;
 /*
  * @title静态模型定义处理类
  * @Author: SpringYang <ceroot@163.com>
  */
 class Quiet extends Base
 {
-    protected $ZOriginal;//最初模型数据
+    protected $ZOriginal; //最初模型数据
     // 初始化
     public function info($modelinfo)
     {
-        $info  = $this->ZOriginal = $modelinfo;
+        $info  = $this->ZOriginal  = $modelinfo;
         $scene = $this->scene = $this->scene ?: request()->action();
-        //当前操作模型信息
-        if (isset($info[$scene]) && isset($info['default'])) {
-            $info = array_merge($info['default'], $info[$scene]);
-        } elseif (isset($info['default'])) {
-            $info = $info['default'];
-        }
-        $this->Original[0] = $info;//原始模型
-        //$pk
+        // 当前操作模型信息
+        $info = (isset($info[$scene]) && isset($info['default'])) ? array_merge($info['default'], $info[$scene]) : $info['default'];
+
+        $this->Original[0] = $info; //原始模型
+        // $pk
         if (isset($info['pk'])) {
             $this->pk = $info['pk'];
         }
@@ -55,7 +51,7 @@ class Quiet extends Base
      */
     public function getButton($button = '')
     {
-        if(empty($button)){
+        if (empty($button)) {
             $button = $this->Original[0]['button'];
         }
         if (!empty($button)) {
@@ -65,7 +61,7 @@ class Quiet extends Base
                 $url = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($param) {
                     return isset($param[$match[1]]) ? $param[$match[1]] : '';
                 }, $value['url']);
-                $value['url'] = url($url,'',false);
+                $value['url'] = url($url, '', false);
             }
             $this->info['button'] = $button;
         }
@@ -104,7 +100,7 @@ class Quiet extends Base
             }
         }
         $this->info['search_list'] = $search_arr;
-        $this->getSearchFixed();//调用固定搜索
+        $this->getSearchFixed(); //调用固定搜索
         return $this;
     }
 
@@ -123,7 +119,7 @@ class Quiet extends Base
         foreach ($search_fixed as $key => &$value) {
             if (0 === strpos($value['value'], ':') || 0 === strpos($value['value'], '[')) {
                 $string = $value['value'];
-                $str = substr($string, 1);
+                $str    = substr($string, 1);
                 if (0 === strpos($str, '[')) {
                     if (preg_match('/\[([a-z_]+)\]/', $str, $matches)) {
                         if (!isset($param[$matches['1']])) {
@@ -147,19 +143,22 @@ class Quiet extends Base
      */
     public function getFields($fields = false)
     {
-        if(!$fields)
+        if (!$fields) {
             $fields = isset($this->info['fields']) ? $this->info['fields'] : [];
+        }
+
         $new_arr = [];
         foreach ($fields as $key => $value) {
-            $data_name = array_column($value,'name');
-            if(count($data_name) == count(array_filter($data_name)))
-                $new_arr[$key] = Array_mapping($fields[$key],'name');
-            else
+            $data_name = array_column($value, 'name');
+            if (count($data_name) == count(array_filter($data_name))) {
+                $new_arr[$key] = Array_mapping($fields[$key], 'name');
+            } else {
                 $new_arr[$key] = $value;
+            }
+
         }
         $this->info['fields'] = $new_arr;
         return $this;
     }
 
 }
-?>

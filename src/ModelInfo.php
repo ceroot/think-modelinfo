@@ -9,14 +9,16 @@
 
 namespace ceroot;
 
-use think\Request;
 use ceroot\modelinfo\Quiet;
 use ceroot\modelinfo\System;
+use think\Request;
+
 /**
  * 模型解析通用类
  * @author SpringYang <ceroot@163.com>
  */
-class ModelInfo{
+class ModelInfo
+{
     /*
      * 模型解析 快速 实例化对象
      * @param $model_info 模型ID或模型定义规则
@@ -24,13 +26,9 @@ class ModelInfo{
      * @param $status true 是否查询父级模型(模型ID时有效)
      * @return obj 返回实例化对象
      */
-    public function info($model_info,$returnmodel=false,$status=true){
-
-        if(is_array($model_info)){
-            $class = (new Quiet())->info($model_info,$returnmodel);
-        }else{
-            $class = (new System())->info($model_info,$returnmodel,$status);
-        }
+    public function info($model_info, $returnmodel = false, $status = true)
+    {
+        $class = is_array($model_info) ? (new Quiet())->info($model_info, $returnmodel) : (new System())->info($model_info, $returnmodel, $status);
         return $class;
     }
     /**
@@ -40,12 +38,13 @@ class ModelInfo{
      * @return  array
      * @author SpringYang <ceroot@163.com>
      */
-    public function getList($model_info=false,$type=true){
-        $model_obj = $this->info($model_info,true);
-        if(is_numeric($model_info)){
-            $model_obj->type =$type;
+    public function getList($model_info = false, $type = true)
+    {
+        $model_obj = $this->info($model_info, true);
+        if (is_numeric($model_info)) {
+            $model_obj->type = $type;
         }
-        if(Request()->isPost()) {
+        if (Request()->isPost()) {
             $Modelinfo = $model_obj->scene(Request()->action())
                 ->getSearchList()
                 ->getWhere()
@@ -54,7 +53,7 @@ class ModelInfo{
                 ->parseList()
                 ->parseListIntent()
                 ->getParam('info');
-        }else{
+        } else {
             $Modelinfo = $model_obj->scene(Request()->action())
                 ->getButton()
                 ->getListField()
@@ -69,8 +68,9 @@ class ModelInfo{
      * @return $model_info 解析后的模型规则
      * @author SpringYang <ceroot@163.com>
      */
-    public function getAdd($model_info){
-        $model_obj  = $this->info($model_info,true,false);
+    public function getAdd($model_info)
+    {
+        $model_obj  = $this->info($model_info, true, false);
         $model_info = $model_obj->getFields()->FieldDefaultValue()->setInit()->getParam('info');
         return $model_info;
     }
@@ -81,12 +81,13 @@ class ModelInfo{
      * @param $layer      业务层名称
      * @author SpringYang <ceroot@163.com>
      */
-    public function getEdit($model_info,$where = false,$layer='model'){
+    public function getEdit($model_info, $where = false, $layer = 'model')
+    {
         $param = Request()->param();
-        if(!$where){
-            $where = ['id'=>$param['id']];
+        if (!$where) {
+            $where = ['id' => $param['id']];
         }
-        $model_obj  = $this->info($model_info,true,true);
+        $model_obj  = $this->info($model_info, true, true);
         $model_info = $model_obj->getFields()->getQueryModel($layer)->getFind($where)->setInit()->getParam('info');
         return $model_info;
     }
@@ -97,17 +98,18 @@ class ModelInfo{
      * @return 返回状态 成功返回操作状态信息 失败返回 false
      * @author SpringYang <ceroot@163.com>
      */
-    public function getUpdate($model_info,$laye = 'model'){
+    public function getUpdate($model_info, $laye = 'model')
+    {
         //获取模型信息
         $model_obj = $this->info($model_info);
 
         //自动验证
-        if(!$validate = $model_obj->getFields()->checkValidate()){
+        if (!$validate = $model_obj->getFields()->checkValidate()) {
             $this->error = $model_obj->getError();
             return false;
         }
 
-        if(!$res = $model_obj->getQueryModel($laye)->getUpdate()){
+        if (!$res = $model_obj->getQueryModel($laye)->getUpdate()) {
             $this->error = $model_obj->getError();
             return false;
         }
