@@ -170,6 +170,7 @@ class Base
         if (empty($data)) {
             $data = Request::instance()->param();
         }
+
         $new_arr = [];
         foreach ($fields as $k => $v) {
             foreach ($v as $key => $value) {
@@ -187,7 +188,7 @@ class Base
                         $new_arr[$k][$value['name']] = $value['value'];
                     }
                 } else {
-                    $new_arr[$value['name']] = '';
+                    $new_arr[$value['name']] = ''; // 没有默认值的情况
                 }
             }
         }
