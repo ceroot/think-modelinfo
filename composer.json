@@ -5,7 +5,7 @@
     "homepage": "https://www.benweng.com",
     "license": "Apache-2.0",
     "minimum-stability": "dev",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "authors": [
         {
             "name": "SpringYang",
@@ -16,7 +16,8 @@
         "issues": "https://github.com/ceroot/think-modelinfo/issues"
     },
     "require": {
-        "php": ">=5.6.0"
+        "php": ">=5.6.0",
+        "topthink/think-helper": "^1.0",
     },
     "require-dev": {
         "php": ">=5.6.0"

@@ -167,7 +167,6 @@ class Base
             $fields = $this->info['fields'];
         }
 
-        $arr = [];
         if (empty($data)) {
             $data = Request::instance()->param();
         }
@@ -187,6 +186,8 @@ class Base
                     } else {
                         $new_arr[$k][$value['name']] = $value['value'];
                     }
+                } else {
+                    $new_arr[$value['name']] = '';
                 }
             }
         }
