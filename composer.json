@@ -16,8 +16,7 @@
         "issues": "https://github.com/ceroot/think-modelinfo/issues"
     },
     "require": {
-        "php": ">=5.6.0",
-        "topthink/think-helper": "^1.0",
+        "php": ">=5.6.0"
     },
     "require-dev": {
         "php": ">=5.6.0"
