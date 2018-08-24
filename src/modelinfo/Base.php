@@ -258,7 +258,8 @@ class Base
                 $where[] = [$this->pk, 'eq', $param['like_seach']];
             }
         } else {
-            $where[$this->pk] = [$this->pk, 'gt', 0];
+            // $where[$this->pk] = [$this->pk, 'gt', 0];
+            $where[] = [$this->pk, 'gt', 0];
         }
         //固定搜索
         if ($where_solid) {
@@ -454,11 +455,15 @@ class Base
             $where = $this->info['where'];
         }
         //模型列表
-        $model_list          = $this->Original;
-        $Basics_modelname    = $model_list[0]['name'];
-        $Connection          = Connection::instance();
-        $Basics_model_fields = $Connection->getTableInfo(config('database.prefix') . $Basics_modelname, 'fields');
+        $model_list       = $this->Original;
+        $Basics_modelname = $model_list[0]['name'];
+        // $Connection          = Connection::instance();
+        // $Basics_model_fields = $Connection->getTableInfo(config('database.prefix') . $Basics_modelname, 'fields');
+        // $query_modelobj      = Db::view($Basics_modelname, $Basics_model_fields);
+
+        $Basics_model_fields = Db::getTableFields(config('database.prefix') . $Basics_modelname);
         $query_modelobj      = Db::view($Basics_modelname, $Basics_model_fields);
+
         if (count($model_list) > 1) {
             for ($i = 1; $i < count($model_list); $i++) {
                 $table_name = $model_list[$i]['name'];
