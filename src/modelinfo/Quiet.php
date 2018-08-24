@@ -37,7 +37,21 @@ class Quiet extends Base
         if (isset($info['url']) && $info['url'] !== false) {
             $info['url'] = $info['url'] !== true ? url($info['url']) : request()->url();
         }
-        $this->info = $info;
+
+        // 处理默认值
+        $fields_defult = [
+            'is_show' => 1,
+            'inline'  => 1,
+        ];
+        $fields_arr = [];
+        foreach ($info['fields'] as $key => $v) {
+            foreach ($v as $value) {
+                $value              = array_merge($fields_defult, $value);
+                $fields_arr[$key][] = $value;
+            }
+        }
+        $info['fields'] = $fields_arr;
+        $this->info     = $info;
         //Button
         if (!empty($info['button'])) {
             $this->getButton($info['button']);
