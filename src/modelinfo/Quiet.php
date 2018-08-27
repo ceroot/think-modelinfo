@@ -9,6 +9,8 @@
 
 namespace ceroot\modelinfo;
 
+use think\facade\Request;
+
 /*
  * @title静态模型定义处理类
  * @Author: SpringYang <ceroot@163.com>
@@ -20,7 +22,7 @@ class Quiet extends Base
     public function info($modelinfo)
     {
         $info  = $this->ZOriginal  = $modelinfo;
-        $scene = $this->scene = $this->scene ?: request()->action();
+        $scene = $this->scene = $this->scene ?: Request::action();
         // 当前操作模型信息
         $info = (isset($info[$scene]) && isset($info['default'])) ? array_merge($info['default'], $info[$scene]) : $info['default'];
 
@@ -33,12 +35,18 @@ class Quiet extends Base
         if (empty($info['replace_string'])) {
             $info['replace_string'] = $this->replace_string;
         }
-        $info['name'] = !empty($info['name']) ? $info['name'] : request()->controller();
+
+        // 处理表名称
+        $info['name'] = !empty($info['name']) ? $info['name'] : Request::controller();
+
+        // url
         if (isset($info['url']) && $info['url'] !== false) {
-            $info['url'] = $info['url'] !== true ? url($info['url']) : request()->url();
+            $info['url'] = $info['url'] !== true ? url($info['url']) : Request::url();
+        } else {
+            $info['url'] = Request::url();
         }
 
-        // 处理默认值
+        // 处理表单样式显示默认值
         if (isset($info['fields'])) {
             $fields_defult = [
                 'is_show' => 1,
