@@ -11,7 +11,8 @@ think模型解析模块
 
 自定义模型信息参考
 //自定义模型信息
-    public $model_info = [
+```
+    $data = [
         //default 默认配置(action方法名称做为下标 action没有配置的取default, defaul定义了的在action会继承和可覆盖)
         'default'=>[
             'meta_title' => '配置管理',
@@ -82,6 +83,7 @@ think模型解析模块
             'meta_title' => '编辑配置',
         ]
     ];
+```
 
 使用
 > 实例化 modelinfo();
