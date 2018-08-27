@@ -86,13 +86,25 @@ think模型解析模块
 ```
 
 使用
-> 实例化 modelinfo();
+> 实例化
+```php
+modelinfo();
+```
 
-> 列表 modelinfo()->getList($data);
+> 列表
+```php
+modelinfo()->getList($data);
+```
 
-> 添加 modelinfo()->getAdd($data);
+> 添加
+```php
+modelinfo()->getAdd($data);
+```
 
-> 编辑 modelinfo()->getEdit($data);
+> 编辑
+```php
+modelinfo()->getEdit($data);
+```
 
 2018.08.24（1.0.8）
 > 1.增加表单默认值，以显示样式判断
