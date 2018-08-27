@@ -11,7 +11,7 @@ think模型解析模块
 
 自定义模型信息参考
 //自定义模型信息
-```
+```php
     $data = [
         //default 默认配置(action方法名称做为下标 action没有配置的取default, defaul定义了的在action会继承和可覆盖)
         'default'=>[
