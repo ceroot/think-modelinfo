@@ -113,7 +113,8 @@ class ModelInfo
             $this->error = $model_obj->getError();
             return false;
         }
-        return true;
+        return $res;
+        // return true;
     }
     /**
      * 返回模型的错误信息
