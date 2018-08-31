@@ -20,7 +20,6 @@ function modelinfo()
  */
 function intent_list_field($data, $grid, $replace = false)
 {
-
     //获取请求参数
     $param = request()->param();
     $data  = array_merge($param, $data);
@@ -62,20 +61,32 @@ function intent_list_field($data, $grid, $replace = false)
             $switch = isset($array[1]) ? $array[1] : '';
             if (preg_match('#\{(.*?)\}#', $switch, $matches)) {
                 // switch 格式解析 列:[status]|{1.启用 2.禁用} 即: [字段]|{值.标题.链接(多个用空格分割)}
+                // switch 格式解析 列:[status]|{1.启用 2.禁用} 即: [字段]|{值.标题.链接.class.title(多个用空格分割)}
                 $switch_arr = explode(' ', $matches[1]);
+                $class      = '';
+                $quickTitle = '';
                 foreach ($switch_arr as $value) {
                     $value_arr          = explode('.', $value);
                     $arr[$value_arr[0]] = $value_arr;
+                    if (isset($value_arr[3])) {
+                        $class = str_replace('@', ' ', $value_arr[3]);
+                    }
+                    if (isset($value_arr[4])) {
+                        $quickTitle = $value_arr[4];
+                    }
                 }
+
                 preg_match('/^\[([a-z_]+)\]$/', $array[0], $matches);
+
                 $data_val = $data[$matches[1]];
                 $show     = $arr[$data_val][1];
-
+                dump($replace);die;
                 // 替换系统特殊字符串
                 $href = isset($arr[$data_val][2]) ? str_replace($replace['0'], $replace['1'], $arr[$data_val][2]) : '';
+
                 // 替换数据变量
                 $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href);
-                $val[] = '<a href="' . url($href) . '">' . $show . '</a>';
+                $val[] = '<a title="' . $quickTitle . '" class="' . $class . '" href="' . url($href) . '">' . $show . '</a>';
             } elseif (preg_match('/^\[([a-z_]+)\]$/', $href, $matches)) {
                 //直接显示内容
                 $val[] = $data2[$matches[1]];
@@ -95,7 +106,7 @@ function intent_list_field($data, $grid, $replace = false)
                 $href = $replace ? str_replace($replace['0'], $replace['1'], $href) : $href;
                 // 替换数据变量
                 $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href);
-                $val[] = '<a class="' . $class . '" lay-event="' . $class . '" url="' . url($href) . '">' . $show . '</a>';
+                $val[] = '<a title="快捷设置状态" class="' . $class . '" lay-event="' . $class . '" url="' . url($href) . '">' . $show . '</a>';
             }
         }
         $value = implode(' ', $val);
