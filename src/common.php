@@ -80,7 +80,7 @@ function intent_list_field($data, $grid, $replace = false)
 
                 $data_val = $data[$matches[1]];
                 $show     = $arr[$data_val][1];
-                dump($replace);die;
+
                 // 替换系统特殊字符串
                 $href = isset($arr[$data_val][2]) ? str_replace($replace['0'], $replace['1'], $arr[$data_val][2]) : '';
 
