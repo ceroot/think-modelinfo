@@ -24,16 +24,14 @@ use think\Loader;
  */
 class Base
 {
-    protected $Original; //原始模型数据列表
-    protected $info; //解析后的信息
+    protected $Original; // 原始模型数据列表
+    protected $info; // 解析后的信息
 
-    protected $Queryobj; //实列化查询对象
-    public $QueryModel; //绑定模型对象列表
-    public $pk    = 'id'; //主键
-    public $scene = false; //应用场景
+    protected $Queryobj; // 实列化查询对象
+    public $QueryModel; // 绑定模型对象列表
+    public $pk    = 'id'; // 主键
+    public $scene = false; // 应用场景
     protected $options;
-    //特殊字符串替换用于列表定义解析  假删除       真删除         编辑       数据恢复      禁用         启用
-    public $replace_string = [['[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]'], ['del?ids=[id]', 'destroy?ids=[id]', 'edit?id=[id]', 'recovery?ids=[id]', 'status?status=0&ids=[id]', 'status?status=1&ids=[id]']];
 
     /*
      * info数据初始化
@@ -41,11 +39,11 @@ class Base
     public function setInit()
     {
         $info = $this->info;
-        //field_group
+        // field_group
         if (isset($info['field_group'])) {
             $this->info['field_group'] = parse_config_attr($this->info['field_group']);
         }
-        //data
+        // fields:default_value
         if (!isset($info['field_default_value']) && isset($info['fields'])) {
             $this->FieldDefaultValue();
         }
@@ -207,11 +205,11 @@ class Base
     {
         $param = request()->param();
         $where = [];
-        //默认搜索条件
+        // 默认搜索条件
         if (isset($param['like_seach']) && empty($param['like_seach']) && empty($param['seach_all']) && !$where_default) {
             if ($search_list = $this->info['search_list']) {
                 foreach ($search_list as $value) {
-                    //表达式为空或者默认值为空不参与搜索
+                    // 表达式为空或者默认值为空不参与搜索
                     if (empty($value['exp']) || empty($value['value'])) {
                         continue;
                     }
@@ -227,7 +225,7 @@ class Base
         } elseif ($where_default) {
             $where += $where_default;
         }
-        //高级搜索
+        // 高级搜索
         if (!empty($param['seach_all']) && empty($param['like_seach'])) {
             $seach_all_ys = $param['seach_all'];
             $seach_all    = [];
@@ -235,7 +233,7 @@ class Base
                 $seach_all[] = ['name' => $value, 'exp' => $seach_all_ys['exp'][$key], 'value' => $seach_all_ys['value'][$key]];
             }
             foreach ($seach_all as $key => $value) {
-                //表达式以及value为空不参与搜索
+                // 表达式以及value为空不参与搜索
                 if (empty($value['exp']) || empty($value['value'])) {
                     continue;
                 }
@@ -243,7 +241,7 @@ class Base
                 $where[] = $this->QueryExpression($value['exp'], $value['name'], $value['value']);
             }
         } elseif (!empty($param['like_seach'])) {
-            //搜索列表定义字段
+            // 搜索列表定义字段
             if ($this->info['list_field']) {
                 $this->getTablePrefixFields('', false);
                 $fields       = array_column($this->info['list_field'], 'name');
@@ -261,7 +259,7 @@ class Base
             // $where[$this->pk] = [$this->pk, 'gt', 0];
             $where[] = [$this->pk, 'gt', 0];
         }
-        //固定搜索
+        // 固定搜索
         if ($where_solid) {
             $where += $where_solid;
         }
@@ -270,7 +268,7 @@ class Base
                 $where[] = $this->QueryExpression($value['exp'], $value['name'], $value['value']);
             }
         }
-        //是否关联查询
+        // 是否关联查询
         if ($relation) {
             $this->getTablePrefixFields();
             $TablePrefixFields = $this->info['TablePrefixFields'];
@@ -294,7 +292,7 @@ class Base
     public function QueryExpression($exp = false, $name, $value)
     {
         switch (trim($exp)) {
-            //判断查询方式
+            // 判断查询方式
             case 'neq':
                 $search_arr = [$name, 'neq', $value];
                 break;
@@ -426,7 +424,7 @@ class Base
      */
     public function getView($model_list = false)
     {
-        //模型列表
+        // 模型列表
         if (!$model_list) {
             $model_list = $this->Original;
         }
@@ -454,7 +452,7 @@ class Base
         if (!$where) {
             $where = $this->info['where'];
         }
-        //模型列表
+        // 模型列表
         $model_list       = $this->Original;
         $Basics_modelname = $model_list[0]['name'];
         // $Connection          = Connection::instance();
@@ -565,9 +563,9 @@ class Base
         if (empty($param)) {
             $param = request()->param();
         }
-        //自动完成
+        // 自动完成
         $param = $this->checkModelAttr($this->info['fields'], $param);
-        //获取模型对象
+        // 获取模型对象
         if (!$this->QueryModel) {
             $this->getQueryModel();
         }
@@ -610,11 +608,11 @@ class Base
             $fields = [];
         }
         if (!$data) {
-            $data = request()->param(); //获取数据
+            $data = request()->param(); // 获取数据
         }
 
         $validate             = array();
-        $validate_scene_field = []; //验证字段
+        $validate_scene_field = []; // 验证字段
         foreach ($fields as $key => $attr) {
             if (!isset($attr['validate_time'])) {
                 continue;
@@ -653,10 +651,10 @@ class Base
                             }
                             $msg                    = $attr['error_info'] ? $attr['error_info'] : $attr['title'] . '验证错误';
                             $validate[]             = [$attr['name'], $require . $attr['validate_rule'], $require_msg . $msg];
-                            $validate_scene_field[] = $attr['name']; //验证字段
+                            $validate_scene_field[] = $attr['name']; // 验证字段
                         } elseif ($attr['is_must']) {
                             $validate[]             = [$attr['name'], 'require', $attr['title'] . '不能为空'];
-                            $validate_scene_field[] = $attr['name']; //验证字段
+                            $validate_scene_field[] = $attr['name']; // 验证字段
                         }
                     }
                     break;
@@ -670,15 +668,15 @@ class Base
                         }
                         $msg                    = $attr['error_info'] ? $attr['error_info'] : $attr['title'] . '验证错误';
                         $validate[]             = [$attr['name'], $require . $attr['validate_rule'], $require_msg . $msg];
-                        $validate_scene_field[] = $attr['name']; //验证字段
+                        $validate_scene_field[] = $attr['name']; // 验证字段
                     } elseif ($attr['is_must']) {
                         $validate[]             = [$attr['name'], 'require', $attr['title'] . '不能为空'];
-                        $validate_scene_field[] = $attr['name']; //验证字段
+                        $validate_scene_field[] = $attr['name']; // 验证字段
                     }
                     break;
             }
         }
-        //验证场景
+        // 验证场景
         $scene = isset($this->scene) ? $this->scene : request()->action();
         foreach ($this->Original as $value) {
             $vli_obg = $this->getModelClass($value['name'], 'validate');
@@ -711,7 +709,7 @@ class Base
         if (is_array($fields)) {
             $fields = $this->MergeFields($fields);
         }
-        $auto_data = $data; //自动完成更新接收数据
+        $auto_data = $data; // 自动完成更新接收数据
         foreach ($fields as $key => $attr) {
             if (!isset($attr['auto_time'])) {
                 continue;
@@ -983,7 +981,7 @@ class Base
         $this->$name = $value;
         return $this;
     }
-    //获取对象属性值
+    // 获取对象属性值
     public function getObjAttr($name)
     {
         return $this->$name;

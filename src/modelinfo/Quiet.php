@@ -17,34 +17,84 @@ use think\facade\Request;
  */
 class Quiet extends Base
 {
-    protected $ZOriginal; //最初模型数据
+    protected $ZOriginal; // 最初模型数据
+    private $defaul_config;
+    public function __construct()
+    {
+        $this->defaul_config = [
+            // default 默认配置(action方法名称做为下标 action没有配置的取default, defaul定义了的在action会继承和可覆盖)
+            'default' => [
+                // 表单提交地址
+                'url'            => Request::url(),
+                // 操作方法(方法不存在的时候起作用)
+                'action'         => '',
+                // 特殊字符串替换用于列表定义解析  假删除  真删除    编辑      数据恢复      禁用         启用
+                'replace_string' => [['[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]'], ['del?ids=[id]', 'destroy?ids=[id]', 'edit?id=[id]', 'recovery?ids=[id]', 'status?status=0&ids=[id]', 'status?status=1&ids=[id]']],
+                // 按钮组 用于模版的显示
+                // ['title' => '新增', 'url' => 'add', 'icon' => 'iconfont icon-xinzeng', 'class' => 'list_add btn-success', 'ExtraHTML' => ''],
+                // ['title' => '删除', 'url' => 'del', 'icon' => 'iconfont icon-shanchu', 'class' => 'btn-danger ajax-post confirm', 'ExtraHTML' => 'target-form="ids"'],
+                // ['title' => '排序', 'url' => 'sort', 'icon' => 'iconfont icon-paixu', 'class' => 'btn-info list_sort', 'ExtraHTML' => ''],
+                'button'         => [],
+                // 表名
+                'name'           => Request::controller(),
+                //主键
+                'pk'             => 'id',
+                // 列表定义
+                'list_grid'      => '', // id:ID;name:名称:[EDIT];title:标题;update_time:最后更新;group|get_config_group:分组;type|get_config_type:类型;id:操作:[EDIT]|编辑,del?id=[id]|删除
+                // 列表头即列表定义后解析的规则  由系统根据list_grid列表定义完成
+                // 'list_field'     => [],
+                //验证字段属性信息 由系统完成 在fields设置
+                'validate'       => [],
+                // 自由组合的搜索字段  ['字段'=>'标题'] 为空取列表定义的
+                // ["name" => "status", "title" => "数据状态", "exp" => "eq", "value" => "1", "type" => "select", "extra" => "-1:假删除,0:禁用,1:启用,2:审核"],
+                'search_list'    => [],
+                // 固定搜索条件 // ["name" => "category_id", "exp" => "eq", "value" => ":[cate_id]"],
+                'search_fixed'   => [],
+                // 表单显示分组
+                'field_group'    => '', // 1:基础,2:扩展
+                // 表单显示排序
+                // '1' => [
+                //     ['name' => 'id', 'title' => 'UID', 'type' => 'string', 'remark' => '说明内容', 'isshow' => 0, 'ExtraHTML' => 'lay-verify=required|phone|number'],
+                // ],
+                // '2'  => [
+                //     ['name' => 'id', 'title' => 'UID', 'type' => 'string', 'remark' => '说明内容', 'isshow' => 0],
+                // ],
+                "fields"         => [],
+                // 列表模板
+                'template_lists' => 'mould/lists',
+                // 新增模板
+                'template_add'   => 'mould/add',
+                // 编辑模板
+                'template_edit'  => 'mould/edit',
+                // 当前模版(使用以上3种模版配置请设置为false)
+                'template'       => false,
+                // 列表数据大小
+                'list_row'       => '10',
+            ],
+        ];
+    }
+
     // 初始化
     public function info($modelinfo)
     {
+        // dump($this->defaul_config);
         $info  = $this->ZOriginal  = $modelinfo;
         $scene = $this->scene = $this->scene ?: Request::action();
-        // 当前操作模型信息
-        $info = (isset($info[$scene]) && isset($info['default'])) ? array_merge($info['default'], $info[$scene]) : $info['default'];
+        // die;
+        $info['default'] = isset($info['default']) ? array_merge($this->defaul_config['default'], $info['default']) : $this->defaul_config['default'];
+        $info            = (isset($info[$scene]) && isset($info['default'])) ? array_merge($info['default'], $info[$scene]) : $info['default'];
 
-        $this->Original[0] = $info; //原始模型
+        // 当前操作模型信息
+        // $info            = (isset($info[$scene]) && isset($info['default'])) ? array_merge($info['default'], $info[$scene]) : $info['default'];
+        // die;
+        $this->Original[0] = $info; // 原始模型
         // $pk
         if (isset($info['pk'])) {
             $this->pk = $info['pk'];
         }
-        //replace_string
-        if (empty($info['replace_string'])) {
-            $info['replace_string'] = $this->replace_string;
-        }
 
         // 处理表名称
         $info['name'] = !empty($info['name']) ? $info['name'] : Request::controller();
-
-        // url
-        if (isset($info['url']) && $info['url'] !== false) {
-            $info['url'] = $info['url'] !== true ? url($info['url']) : Request::url();
-        } else {
-            $info['url'] = Request::url();
-        }
 
         // 处理表单样式显示默认值
         if (isset($info['fields'])) {
@@ -63,7 +113,7 @@ class Quiet extends Base
             $info['fields'] = $fields_arr;
         }
         $this->info = $info;
-        //Button
+        // Button
         if (!empty($info['button'])) {
             $this->getButton($info['button']);
         }
@@ -115,7 +165,7 @@ class Quiet extends Base
     public function getSearchList()
     {
         $search_arr = isset($this->info['search_list']) ? $this->info['search_list'] : [];
-        //value extra规则解析
+        // value extra规则解析
         foreach ($search_arr as $key => &$value) {
             if (0 === strpos($value['value'], ':') || 0 === strpos($value['value'], '[')) {
                 $value['value'] = parse_field_attr($value['value']);
@@ -125,7 +175,7 @@ class Quiet extends Base
             }
         }
         $this->info['search_list'] = $search_arr;
-        $this->getSearchFixed(); //调用固定搜索
+        $this->getSearchFixed(); // 调用固定搜索
         return $this;
     }
 
@@ -140,7 +190,7 @@ class Quiet extends Base
             $search_fixed = isset($this->info['search_fixed']) ? $this->info['search_fixed'] : [];
         }
         $param = request()->param();
-        //value规则解析
+        // value规则解析
         foreach ($search_fixed as $key => &$value) {
             if (0 === strpos($value['value'], ':') || 0 === strpos($value['value'], '[')) {
                 $string = $value['value'];
@@ -174,13 +224,8 @@ class Quiet extends Base
 
         $new_arr = [];
         foreach ($fields as $key => $value) {
-            $data_name = array_column($value, 'name');
-            if (count($data_name) == count(array_filter($data_name))) {
-                $new_arr[$key] = Array_mapping($fields[$key], 'name');
-            } else {
-                $new_arr[$key] = $value;
-            }
-
+            $data_name     = array_column($value, 'name');
+            $new_arr[$key] = array_combine($data_name, $value);
         }
         $this->info['fields'] = $new_arr;
         return $this;
