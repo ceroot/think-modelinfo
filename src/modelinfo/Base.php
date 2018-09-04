@@ -10,7 +10,6 @@
 namespace ceroot\modelinfo;
 
 use think\Db;
-use think\db\Connection;
 use think\Exception;
 use think\exception\ClassNotFoundException;
 use think\exception\PDOException;
@@ -372,14 +371,25 @@ class Base
             $model_list = $this->Original;
         }
 
-        $fieldsArr  = [];
-        $Connection = Connection::instance();
+        $fieldsArr = [];
         foreach ($model_list as $key => $value) {
-            $arr = $Connection->getTableInfo(config('database.prefix') . $value['name'], 'fields');
-            foreach ($arr as $k => $v) {
+            $fields = Db::name($value['name'])->getTableFields();
+            foreach ($fields as $k => $v) {
                 $fieldsArr[$v] = $prefix ? $value['name'] . '.' . $v : $v;
             }
         }
+
+        // dump($fieldsArr);
+
+        // $fieldsArr  = [];
+        // $Connection = Connection::instance();
+        // foreach ($model_list as $key => $value) {
+        //     $arr = $Connection->getTableInfo(config('database.prefix') . $value['name'], 'fields');
+        //     foreach ($arr as $k => $v) {
+        //         $fieldsArr[$v] = $prefix ? $value['name'] . '.' . $v : $v;
+        //     }
+        // }
+        // dummp($fieldsArr);
         $this->info['TablePrefixFields'] = $fieldsArr;
         return $this;
     }
@@ -430,9 +440,7 @@ class Base
         }
 
         $Basics_modelname    = $model_list[0]['name'];
-        $Basics_modelname    = $this->toUnderline($Basics_modelname);
-        $Connection          = Connection::instance();
-        $Basics_model_fields = $Connection->getTableInfo(config('database.prefix') . $Basics_modelname, 'fields');
+        $Basics_model_fields = Db::name($Basics_modelname)->getTableFields();
         $query_modelobj      = Db::view($Basics_modelname, $Basics_model_fields);
         if (count($model_list) > 1) {
             for ($i = 1; $i < count($model_list); $i++) {
@@ -453,16 +461,11 @@ class Base
         if (!$where) {
             $where = $this->info['where'];
         }
-        // 模型列表
-        $model_list = $this->Original;
-        // $Basics_modelname = $model_list[0]['name'];
-        $Basics_modelname = $this->info['name'];
-        $Basics_modelname = $this->toUnderline($Basics_modelname);
-        // $Connection          = Connection::instance();
-        // $Basics_model_fields = $Connection->getTableInfo(config('database.prefix') . $Basics_modelname, 'fields');
-        // $query_modelobj      = Db::view($Basics_modelname, $Basics_model_fields);
 
-        $Basics_model_fields = Db::getTableFields(config('database.prefix') . $Basics_modelname);
+        // 模型列表
+        $model_list          = $this->Original;
+        $Basics_modelname    = $model_list[0]['name'];
+        $Basics_model_fields = Db::name($Basics_modelname)->getTableFields();
         $query_modelobj      = Db::view($Basics_modelname, $Basics_model_fields);
 
         if (count($model_list) > 1) {
@@ -988,19 +991,5 @@ class Base
     public function getObjAttr($name)
     {
         return $this->$name;
-    }
-
-    public function toUnderline($str)
-    {
-        $temp_array = [];
-        for ($i = 0; $i < strlen($str); $i++) {
-            $ascii_code = ord($str[$i]);
-            if ($ascii_code >= 65 && $ascii_code <= 90) {
-                $temp_array[] = ($i == 0) ? chr($ascii_code + 32) : '_' . chr($ascii_code + 32);
-            } else {
-                $temp_array[] = $str[$i];
-            }
-        }
-        return implode('', $temp_array);
     }
 }
