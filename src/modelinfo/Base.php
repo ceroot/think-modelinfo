@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | Copyright (c) 2018 https://www.benweng.com All rights reserved.
 // +----------------------------------------------------------------------
-// | Author: SpringYang  82550565@qq.com <www.benweng.com>
+// | Author: SpringYang  ceroot@163.com <www.benweng.com>
 // +----------------------------------------------------------------------
 
 namespace ceroot\modelinfo;
@@ -328,7 +328,7 @@ class Base
             $this->getQueryModel();
         }
         if (empty($where)) {
-            $param   = request()->param();
+            $param   = Request::param();
             $where[] = [$this->pk, 'in', $param['id']];
         }
         $data = [];
@@ -379,17 +379,6 @@ class Base
             }
         }
 
-        // dump($fieldsArr);
-
-        // $fieldsArr  = [];
-        // $Connection = Connection::instance();
-        // foreach ($model_list as $key => $value) {
-        //     $arr = $Connection->getTableInfo(config('database.prefix') . $value['name'], 'fields');
-        //     foreach ($arr as $k => $v) {
-        //         $fieldsArr[$v] = $prefix ? $value['name'] . '.' . $v : $v;
-        //     }
-        // }
-        // dummp($fieldsArr);
         $this->info['TablePrefixFields'] = $fieldsArr;
         return $this;
     }

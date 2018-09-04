@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | Copyright (c) 2018 https://www.benweng.com All rights reserved.
 // +----------------------------------------------------------------------
-// | Author: SpringYang  82550565@qq.com <www.benweng.com>
+// | Author: SpringYang  ceroot@163.com <www.benweng.com>
 // +----------------------------------------------------------------------
 
 namespace ceroot\modelinfo;
