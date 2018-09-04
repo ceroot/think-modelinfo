@@ -430,6 +430,7 @@ class Base
         }
 
         $Basics_modelname    = $model_list[0]['name'];
+        $Basics_modelname    = $this->toUnderline($Basics_modelname);
         $Connection          = Connection::instance();
         $Basics_model_fields = $Connection->getTableInfo(config('database.prefix') . $Basics_modelname, 'fields');
         $query_modelobj      = Db::view($Basics_modelname, $Basics_model_fields);
@@ -453,8 +454,10 @@ class Base
             $where = $this->info['where'];
         }
         // 模型列表
-        $model_list       = $this->Original;
-        $Basics_modelname = $model_list[0]['name'];
+        $model_list = $this->Original;
+        // $Basics_modelname = $model_list[0]['name'];
+        $Basics_modelname = $this->info['name'];
+        $Basics_modelname = $this->toUnderline($Basics_modelname);
         // $Connection          = Connection::instance();
         // $Basics_model_fields = $Connection->getTableInfo(config('database.prefix') . $Basics_modelname, 'fields');
         // $query_modelobj      = Db::view($Basics_modelname, $Basics_model_fields);
@@ -985,5 +988,19 @@ class Base
     public function getObjAttr($name)
     {
         return $this->$name;
+    }
+
+    public function toUnderline($str)
+    {
+        $temp_array = [];
+        for ($i = 0; $i < strlen($str); $i++) {
+            $ascii_code = ord($str[$i]);
+            if ($ascii_code >= 65 && $ascii_code <= 90) {
+                $temp_array[] = ($i == 0) ? chr($ascii_code + 32) : '_' . chr($ascii_code + 32);
+            } else {
+                $temp_array[] = $str[$i];
+            }
+        }
+        return implode('', $temp_array);
     }
 }
