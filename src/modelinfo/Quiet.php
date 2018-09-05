@@ -93,9 +93,6 @@ class Quiet extends Base
             $this->pk = $info['pk'];
         }
 
-        // 处理表名称
-        $info['name'] = !empty($info['name']) ? $info['name'] : Request::controller();
-
         // 处理表单样式显示默认值
         if (isset($info['fields'])) {
             $fields_defult = [
