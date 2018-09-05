@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | Copyright (c) 2018 https://www.benweng.com All rights reserved.
 // +----------------------------------------------------------------------
-// | Author: SpringYang  ceroot@163.com <www.benweng.com>
+// | Author: SpringYang  82550565@qq.com <www.benweng.com>
 // +----------------------------------------------------------------------
 
 namespace ceroot\modelinfo;
@@ -28,8 +28,9 @@ class Quiet extends Base
                 'url'            => Request::url(),
                 // 操作方法(方法不存在的时候起作用)
                 'action'         => '',
-                // 特殊字符串替换用于列表定义解析  假删除  真删除    编辑      数据恢复      禁用         启用
-                'replace_string' => [['[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]'], ['del?ids=[id]', 'destroy?ids=[id]', 'edit?id=[id]', 'recovery?ids=[id]', 'status?status=0&ids=[id]', 'status?status=1&ids=[id]']],
+                // 特殊字符串替换用于列表定义解析  详情   假删除     真删除       编辑      数据恢复      禁用         启用         更改字段
+                'replace_string' => [['[DETAILS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']],
+                // updatefield?field=status&value=0&id=[id]
                 // 按钮组 用于模版的显示
                 // ['title' => '新增', 'url' => 'add', 'icon' => 'iconfont icon-xinzeng', 'class' => 'list_add btn-success', 'ExtraHTML' => ''],
                 // ['title' => '删除', 'url' => 'del', 'icon' => 'iconfont icon-shanchu', 'class' => 'btn-danger ajax-post confirm', 'ExtraHTML' => 'target-form="ids"'],
@@ -41,8 +42,10 @@ class Quiet extends Base
                 'pk'             => 'id',
                 // 列表定义
                 'list_grid'      => '', // id:ID;name:名称:[EDIT];title:标题;update_time:最后更新;group|get_config_group:分组;type|get_config_type:类型;id:操作:[EDIT]|编辑,del?id=[id]|删除
-                // 列表头即列表定义后解析的规则  由系统根据list_grid列表定义完成
+                // 列表头即列表定义后解析的规则  由系统根据 list_grid 列表自动生成
                 // 'list_field'     => [],
+                // 表格扩展信息 layui 动态表格
+                'table_extend'   => [],
                 //验证字段属性信息 由系统完成 在fields设置
                 'validate'       => [],
                 // 自由组合的搜索字段  ['字段'=>'标题'] 为空取列表定义的

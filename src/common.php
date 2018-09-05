@@ -23,90 +23,109 @@ function intent_list_field($data, $grid, $replace = false)
     //获取请求参数
     $param = request()->param();
     $data  = array_merge($param, $data);
+
     // 获取当前字段数据
     foreach ($grid['field'] as $field) {
-        $array = explode('|', $field);
-        $temp  = isset($data[$array[0]]) ? $data[$array[0]] : '';
+        $field_arr   = explode('|', $field); // 字段数组，0 为字段，1 为函数名
+        $field_name  = isset($field_arr[0]) ? $field_arr[0] : ''; // 字段名
+        $field_value = isset($data[$field_name]) ? $data[$field_name] : ''; // 取得数据键值
+
         // 函数支持
-        if (isset($array[1]) && preg_match('/(.*?)\((.*)\)/', $array[1], $matches)) {
-            //自定义参数模式
-            $temp = parseFunctionString($matches, $array[1], $data);
-        } elseif (isset($array[1]) && preg_match('#\{(.*?)\}#', $array[1], $matches)) {
+        if (isset($field_arr[1]) && preg_match('/(.*?)\((.*)\)/', $field_arr[1], $matches)) {
+            // 自定义参数模式
+            $field_value = parseFunctionString($matches, $field_arr[1], $data);
+        } elseif (isset($field_arr[1]) && preg_match('#\{(.*?)\}#', $field_arr[1], $matches)) {
             $switch_arr = explode(' ', $matches[1]);
             foreach ($switch_arr as $value) {
                 $value_arr          = explode('.', $value);
                 $arr[$value_arr[0]] = $value_arr;
             }
-            $var_key = $data[$array[0]];
+
+            $var_key = $data[$field_arr[0]];
             $show    = $arr[$var_key][1];
+
             // 替换数据变量
             $href = isset($arr[$var_key][2]) ? preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return $data[$match[1]];}, $arr[$var_key][2]) : '';
-            $temp = isset($arr[$var_key][2]) ? '<a href="' . url($href) . '">' . $show . '</a>' : $show;
-        } elseif (isset($array[1])) {
+            $field_value = isset($arr[$var_key][2]) ? '<a href="' . url($href) . '">' . $show . '</a>' : $show;
+        } elseif (isset($field_arr[1])) {
             //默认参数模式
-            $temp = call_user_func($array[1], $temp);
+            $field_value = call_user_func($field_arr[1], $field_value);
         }
-        $data2[$array[0]] = $temp;
+        $data2[$field_arr[0]] = $field_value;
     }
+
     if (!empty($grid['format'])) {
         $value = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data2) {return $data2[$match[1]];}, $grid['format']);
     } else {
         $value = implode(' ', $data2);
     }
+
     if (!empty($grid['href'])) {
         $links = explode(',', $grid['href']);
         foreach ($links as $link) {
-            $array  = explode('|', $link);
-            $href   = $array[0];
-            $switch = isset($array[1]) ? $array[1] : '';
+            $link_arr   = explode('|', $link);
+            $link_value = $href = isset($link_arr[0]) ? $link_arr[0] : ''; // 取得左边的，比如[status]、[EDIT]
+            $switch     = isset($link_arr[1]) ? $link_arr[1] : ''; // 取得右边的，比如{0.启用.updatefield?field=status&value=1&id=[id].dddd@ddd@ddd.快速设置状态 1.禁用.updatefield?field=status&value=0&id=[id]}
+            $href       = ''; // 链接 url
             if (preg_match('#\{(.*?)\}#', $switch, $matches)) {
-                // switch 格式解析 列:[status]|{1.启用 2.禁用} 即: [字段]|{值.标题.链接(多个用空格分割)}
-                // switch 格式解析 列:[status]|{1.启用 2.禁用} 即: [字段]|{值.标题.链接.class.title(多个用空格分割)}
+                // switch 格式解析 列:[status]|{1.启用 2.禁用} 即: [字段]|{值.标题.链接.class.title (多个用空格分割)} 多个 class 用 @ 分割
                 $switch_arr = explode(' ', $matches[1]);
-                $class      = '';
-                $quickTitle = '';
+                $class      = ''; // html class 类
+                $quickTitle = ''; // 链接鼠标移上去显示的文字
+                $show       = ''; // 显示的文字
                 foreach ($switch_arr as $value) {
-                    $value_arr          = explode('.', $value);
-                    $arr[$value_arr[0]] = $value_arr;
-                    if (isset($value_arr[3])) {
-                        $class = str_replace('@', ' ', $value_arr[3]);
+                    $value_arr = explode('.', $value);
+                    // 判断当前显示的数据
+                    if ($field_value == $value_arr[0]) {
+                        $show = $value_arr[1];
+                        $href = $value_arr[2];
                     }
-                    if (isset($value_arr[4])) {
-                        $quickTitle = $value_arr[4];
-                    }
+
+                    $class      = isset($value_arr[3]) ? str_replace('@', ' ', $value_arr[3]) : ''; // 取得类用于显示
+                    $quickTitle = isset($value_arr[4]) ? $value_arr[4] : ''; // 取得提示标题
                 }
 
-                preg_match('/^\[([a-z_]+)\]$/', $array[0], $matches);
+                $href = str_replace($replace['0'], $replace['1'], $href); // 替换系统特殊字符串
+                $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href); // 替换数据变量
+                $val[] = '<a title="' . $quickTitle . '" class="' . $class . '" href="' . url($href) . '">' . $show . '</a>'; // 组合 html
+            } elseif (preg_match('#\<(.*?)\>#', $switch, $matches)) {
+                $switch_arr = explode('.', $matches[1]);
+                $checked    = ($field_value == 0) ? 'checked=""' : ''; // 默认开关
+                $show       = (isset($switch_arr[1]) && !empty($switch_arr[1])) ? str_replace('/', '|', $switch_arr[1]) : 'ON|OFF'; // 开关显示文字
 
-                $data_val = $data[$matches[1]];
-                $show     = $arr[$data_val][1];
+                // 链接的处理
+                if (isset($switch_arr[2]) && !empty($switch_arr[2])) {
+                    $href = str_replace($replace['0'], $replace['1'], $switch_arr[2]);
+                    $href = str_replace('[field]', $field_name, $href);
+                }
+                $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href); // 替换数据变量
 
-                // 替换系统特殊字符串
-                $href = isset($arr[$data_val][2]) ? str_replace($replace['0'], $replace['1'], $arr[$data_val][2]) : '';
-
-                // 替换数据变量
-                $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href);
-                $val[] = '<a title="' . $quickTitle . '" class="' . $class . '" href="' . url($href) . '">' . $show . '</a>';
-            } elseif (preg_match('/^\[([a-z_]+)\]$/', $href, $matches)) {
+                $val[] = '<input type="checkbox" name="close" ' . $checked . ' lay-skin="switch" lay-filter="setfield" data-href="' . url($href) . '" lay-text="' . $show . '">'; // 组合 html
+            } elseif (preg_match('/^\[([a-z_]+)\]$/', $link_value, $matches)) {
                 //直接显示内容
                 $val[] = $data2[$matches[1]];
-            } elseif (preg_match('/(.*?)\((.*)\)/', $href, $matches)) {
+            } elseif (preg_match('/(.*?)\((.*)\)/', $link_value, $matches)) {
                 //函数支持
-                $val[] = parseFunctionString($matches, $href, $data);
+                $val[] = parseFunctionString($matches, $link_value, $data);
             } else {
-                $show = isset($array[1]) ? $array[1] : $value;
+                $show = isset($link_arr[1]) ? $link_arr[1] : $value;
                 // 生成特定class名称 如:[EDIT] 解析: edit
-                $class = '';
-                preg_match('/^\[([A-Z_]+)\]$/', $href, $matches);
+                $class = 'layui-btn ';
+                $event = '';
+                preg_match('/^\[([A-Z_]+)\]$/', $link_value, $matches);
                 if (isset($matches[1])) {
-                    $class = strtolower($matches[1]);
-                }
+                    $class .= strtolower($matches[1]);
+                    $event = strtolower($matches[1]);
 
-                // 替换系统特殊字符串
-                $href = $replace ? str_replace($replace['0'], $replace['1'], $href) : $href;
-                // 替换数据变量
-                $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href);
-                $val[] = '<a title="快捷设置状态" class="' . $class . '" lay-event="' . $class . '" url="' . url($href) . '">' . $show . '</a>';
+                    $class .= ($event == 'details') ? 'layui-btn-primary' : '';
+                    $class .= ($event == 'edit') ? '' : '';
+                    $class .= ($event == 'delete') ? 'layui-btn-danger' : '';
+                }
+                $class .= ' layui-btn-xs';
+
+                $href = $replace ? str_replace($replace['0'], $replace['1'], $href) : $href; // 替换系统特殊字符串
+                $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href); // 替换数据变量
+                $val[] = '<a title="' . $show . '" class="' . $class . '" lay-event="' . $event . '" url="' . url($href) . '">' . $show . '</a>';
             }
         }
         $value = implode(' ', $val);
@@ -142,7 +161,7 @@ function parseFunctionString($matches, $str, $data)
  */
 function parse_field_attr_param($array, $data)
 {
-    foreach ($array as $key => &$value) {
+    foreach ($array as &$value) {
         if (is_array($value)) {
             $value = parse_field_attr_param($value, $data);
         } elseif ($value == '[DATA]') {
@@ -184,12 +203,12 @@ function parse_field_attr($string, $data = false, $value = '')
     if (!$data) {
         $data = request()->param();
     }
-    //支持数组 [$key=>$v,$key=>$v]
+    // 支持数组 [$key=>$v,$key=>$v]
     if (is_array($string)) {
         return $string;
     }
     if (0 === strpos($string, ':')) {
-// 采用函数定义
+        // 采用函数定义
         $str = substr($string, 1);
         // :[pid] 获取参值 $data不存在则获取request参
         if (0 === strpos($str, '[')) {

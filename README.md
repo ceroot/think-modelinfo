@@ -15,7 +15,6 @@ think模型解析模块
     $data = [
         //default 默认配置(action方法名称做为下标 action没有配置的取default, defaul定义了的在action会继承和可覆盖)
         'default'=>[
-            'meta_title' => '配置管理',
             //表单提交地址
             'url' => 'Config/updates',
             //操作方法(方法不存在的时候起作用)
@@ -135,3 +134,14 @@ modelinfo()->getEdit($data);
 > 2.增加 toUnderline 方法用来驼峰命名转换下划线命名
 
 > 3.其它
+
+2018.09.06（1.1.4）
+> 1.改进列表动作显示输出
+
+> 2.增加 layui table 扩展输出，更容易控制表格样式
+
+> 3.增加特殊字符串替换[UPDATEFIELD]
+
+> 4.改进其它特殊字符串替换
+
+> 5.其它改进
