@@ -248,13 +248,15 @@ class Base
                         $where[$value['name']]['0'] = $where[$value['name']];
                         $where[$value['name']]['1'] = $this->QueryExpression($value['exp'], $value['name'], $value['value']);
                     } else {
-                        $where[$value['name']] = $this->QueryExpression($value['exp'], $value['name'], $value['value']);
+                        // $where[$value['name']] = $this->QueryExpression($value['exp'], $value['name'], $value['value']);
+                        $where[] = $this->QueryExpression($value['exp'], $value['name'], $value['value']);
                     }
                 }
             }
         } elseif ($where_default) {
             $where += $where_default;
         }
+
         // 高级搜索
         if (!empty($param['seach_all']) && empty($param['like_seach'])) {
             $seach_all_ys = $param['seach_all'];
@@ -264,7 +266,8 @@ class Base
             }
             foreach ($seach_all as $key => $value) {
                 // 表达式以及value为空不参与搜索
-                if (empty($value['exp']) || empty($value['value'])) {
+                // if (empty($value['exp']) || empty($value['value'])) {
+                if (empty($value['exp']) || $value['value'] == '') {
                     continue;
                 }
 
@@ -272,6 +275,20 @@ class Base
             }
         } elseif (!empty($param['like_seach'])) {
             // 搜索列表定义字段
+            // if ($this->info['list_field']) {
+            //     // $this->getTablePrefixFields('', false);
+            //     // $fields       = array_column($this->info['list_field'], 'name');
+            //     // $fields       = array_combine($fields, $fields);
+            //     // $fields_duibi = array_diff($fields, $this->info['TablePrefixFields']);
+            //     // foreach ($fields_duibi as $value) {
+            //     //     unset($fields[$value]);
+            //     // }
+            //     // $fields  = implode('|', $fields);
+            //     $where[] = ['title', 'like', "%" . $param['like_seach'] . "%"];
+            // } else {
+            //     $where[] = [$this->pk, 'eq', $param['like_seach']];
+            // }
+            $this->getListField();
             if ($this->info['list_field']) {
                 $this->getTablePrefixFields('', false);
                 $fields       = array_column($this->info['list_field'], 'name');
@@ -280,7 +297,8 @@ class Base
                 foreach ($fields_duibi as $value) {
                     unset($fields[$value]);
                 }
-                $fields  = implode('|', $fields);
+                $fields = implode('|', $fields);
+
                 $where[] = [$fields, 'like', "%" . $param['like_seach'] . "%"];
             } else {
                 $where[] = [$this->pk, 'eq', $param['like_seach']];
