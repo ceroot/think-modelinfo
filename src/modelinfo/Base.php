@@ -129,7 +129,6 @@ class Base
      */
     public function getListField($list_grid = '')
     {
-<<<<<<< HEAD
         // 表格扩展信息默认值
         $grid_default_config = [
             'id'          => ['width' => 60, 'sort' => true],
@@ -138,18 +137,13 @@ class Base
             'status'      => ['width' => 100, 'sort' => true, 'align' => 'center'],
             'handle'      => ['width' => 190, 'align' => 'center', 'fixed' => 'right'],
         ];
-=======
->>>>>>> 38d576654a0f1f66f6dd0f99607c369e8079ecb9
         // 表格扩展信息 layui 动态表格
         if (isset($this->info['table_extend']) && !empty($this->info['table_extend']) && is_array($this->info['table_extend'])) {
             $extendInfo = $this->info['table_extend'];
             $data_field = array_column($extendInfo, 'field');
             $extendInfo = array_combine($data_field, $extendInfo);
             foreach ($extendInfo as &$value) {
-<<<<<<< HEAD
                 $value = isset($grid_default_config[$value['field']]) ? array_merge($grid_default_config[$value['field']], $value) : $value;
-=======
->>>>>>> 38d576654a0f1f66f6dd0f99607c369e8079ecb9
                 if (isset($value['field'])) {
                     unset($value['field']);
                 }
