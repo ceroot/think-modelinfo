@@ -4,14 +4,14 @@
 // +----------------------------------------------------------------------
 // | Copyright (c) 2018 https://www.benweng.com All rights reserved.
 // +----------------------------------------------------------------------
-// | Author: SpringYang  ceroot@163.com <www.benweng.com>
+// | Author: SpringYang  82550565@qq.com <www.benweng.com>
 // +----------------------------------------------------------------------
 
 namespace ceroot;
 
 use ceroot\modelinfo\Quiet;
 use ceroot\modelinfo\System;
-use think\Request;
+use think\facade\Request;
 
 /**
  * 模型解析通用类
@@ -44,6 +44,18 @@ class ModelInfo
         if (is_numeric($model_info)) {
             $model_obj->type = $type;
         }
+        if (Request::param('show')) {
+            $Modelinfo = $model_obj->scene(Request()->action())
+                ->getSearchList()
+                ->getWhere()
+                ->getViewList()
+                ->parseIntTostring()
+                ->parseList()
+                ->parseListIntent()
+                ->getParam('info');
+            // dump($Modelinfo);
+            die;
+        }
         if (Request()->isPost()) {
             $Modelinfo = $model_obj->scene(Request()->action())
                 ->getSearchList()
@@ -60,6 +72,7 @@ class ModelInfo
                 ->getSearchList()
                 ->getParam('info');
         }
+        // dump($Modelinfo);die;
         return $Modelinfo;
     }
     /**

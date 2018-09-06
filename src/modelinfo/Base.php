@@ -31,6 +31,8 @@ class Base
     public $pk    = 'id'; // 主键
     public $scene = false; // 应用场景
     protected $options;
+    // 特殊字符串替换用于列表定义解析  详情   假删除     真删除       编辑      数据恢复      禁用         启用         更改字段
+    protected $replace_string = [['[DETAILS]', '[VIEW]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'view?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']];
 
     /*
      * info数据初始化
@@ -127,17 +129,40 @@ class Base
      */
     public function getListField($list_grid = '')
     {
-        //解析
+        // 表格扩展信息默认值
+        $grid_default_config = [
+            'id'          => ['width' => 60, 'sort' => true],
+            'create_time' => ['width' => 160, 'sort' => true, 'align' => 'center'],
+            'update_time' => ['width' => 160, 'sort' => true, 'align' => 'center'],
+            'status'      => ['width' => 100, 'sort' => true, 'align' => 'center'],
+            'handle'      => ['width' => 190, 'align' => 'center', 'fixed' => 'right'],
+        ];
+        // 表格扩展信息 layui 动态表格
+        if (isset($this->info['table_extend']) && !empty($this->info['table_extend']) && is_array($this->info['table_extend'])) {
+            $extendInfo = $this->info['table_extend'];
+            $data_field = array_column($extendInfo, 'field');
+            $extendInfo = array_combine($data_field, $extendInfo);
+            foreach ($extendInfo as &$value) {
+                $value = isset($grid_default_config[$value['field']]) ? array_merge($grid_default_config[$value['field']], $value) : $value;
+                if (isset($value['field'])) {
+                    unset($value['field']);
+                }
+            }
+        }
+
+        // 解析
         $grids = [];
         if (!empty($list_grid)) {
             $grids = is_array($list_grid) ? $list_grid : preg_split('/[;\r\n]+/s', trim($list_grid));
             foreach ($grids as &$value) {
+                $value = trim($value);
                 // 字段:标题:链接
                 $val = explode(':', $value);
                 // 支持多个字段显示
                 $field      = explode(',', $val[0]);
                 $field_name = explode('|', $field[0]);
                 $value      = ['name' => $field_name['0'], 'field' => $field, 'title' => $val[1]];
+
                 if (isset($val[2])) {
                     // 链接信息
                     $value['href'] = $val[2];
@@ -146,11 +171,17 @@ class Base
                     // 显示格式定义
                     list($value['title'], $value['format']) = explode('|', $val[1]);
                 }
+
+                // 合并表格扩展信息 layui 动态表格
+                if (isset($extendInfo[$value['name']])) {
+                    $value = array_merge($value, $extendInfo[$value['name']]);
+                }
             }
         }
         $this->info['list_field'] = $grids; //列表规则
         return $this;
     }
+
     /**
      * @title  获取字段列表配置默认值 函数支持解析的参数默认为requer信息
      * @param $fields array 字段列表
@@ -816,6 +847,7 @@ class Base
                 $list[$k] = $data;
             }
         }
+
         $this->info['data']['data'] = $list;
         return $this;
     }
@@ -841,6 +873,7 @@ class Base
         } elseif (empty($replace_string)) {
             $replace_string = $this->replace_string;
         }
+        // dump($list_field);
         $list_data_new = [];
         if (is_array($list)) {
             foreach ($list as $k => $v) {
@@ -850,9 +883,12 @@ class Base
                 }
             }
         }
+        // dump($list_data_new);
         $this->info['data']['data'] = $list_data_new;
+        // dump($this->info);
         return $this;
     }
+
     /**
      * 指定info获取字段 支持字段排除和指定数据字段
      * @param mixed   $field
