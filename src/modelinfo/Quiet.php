@@ -29,8 +29,13 @@ class Quiet extends Base
                 'url'            => Request::url(),
                 // 操作方法(方法不存在的时候起作用)
                 'action'         => '',
+<<<<<<< HEAD
                 // 特殊字符串替换用于列表定义解析
                 'replace_string' => $this->replace_string,
+=======
+                // 特殊字符串替换用于列表定义解析  详情   假删除     真删除       编辑      数据恢复      禁用         启用         更改字段
+                'replace_string' => [['[DETAILS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']],
+>>>>>>> 38d576654a0f1f66f6dd0f99607c369e8079ecb9
                 // updatefield?field=status&value=0&id=[id]
                 // 按钮组 用于模版的显示
                 // ['title' => '新增', 'url' => 'add', 'icon' => 'iconfont icon-xinzeng', 'class' => 'list_add btn-success', 'ExtraHTML' => ''],
