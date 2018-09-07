@@ -123,6 +123,7 @@ function intent_list_field($data, $grid, $replace = false)
                     $class .= ($event == 'delete') ? 'layui-btn-danger' : '';
                     $class .= ' layui-btn-xs';
                 }
+                $href = isset($matches[0]) ? $matches[0] : '';
                 $href = $replace ? str_replace($replace['0'], $replace['1'], $href) : $href; // 替换系统特殊字符串
                 $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href); // 替换数据变量
                 $val[] = '<a title="' . $show . '" class="' . $class . '" lay-event="' . $event . '" url="' . url($href) . '">' . $show . '</a>';
