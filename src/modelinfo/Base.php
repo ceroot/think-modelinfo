@@ -33,6 +33,7 @@ class Base
     protected $options;
     // 特殊字符串替换用于列表定义解析  详情   假删除     真删除       编辑      数据恢复      禁用         启用         更改字段
     protected $replace_string = [['[DETAILS]', '[VIEW]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'view?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']];
+    protected $replace_string = [['[DETAILS]', '[VIEWS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'views?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']];
 
     /*
      * info数据初始化
@@ -211,15 +212,24 @@ class Base
                     }
                     if (is_numeric($k)) {
                         //数字下标字符串
-                        $new_arr[$value['name']] = $value['value'];
+                        if (isset($data[$value['name']]) && !empty($data[$value['name']])) {
+                            $new_arr[$value['name']] = $data[$value['name']];
+                        } else {
+                            $new_arr[$value['name']] = $value['value'];
+                        }
                     } else {
                         $new_arr[$k][$value['name']] = $value['value'];
                     }
                 } else {
-                    $new_arr[$value['name']] = ''; // 没有默认值的情况
+                    if (isset($data[$value['name']]) && !empty($data[$value['name']])) {
+                        $new_arr[$value['name']] = $data[$value['name']];
+                    } else {
+                        $new_arr[$value['name']] = ''; // 没有默认值的情况
+                    }
                 }
             }
         }
+
         $this->info['field_default_value'] = $new_arr;
         return $this;
     }
