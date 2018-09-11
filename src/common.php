@@ -97,8 +97,8 @@ function intent_list_field($data, $grid, $replace = false)
                 $field_name  = isset($mth[1]) ? $mth[1] : ''; // 字段名
                 $field_value = isset($data[$field_name]) ? $data[$field_name] : ''; // 取得数据值
 
-                $switch_arr = explode('.', $matches[1]);
                 $checked    = ($field_value == 0) ? 'checked=""' : ''; // 默认开关
+                $switch_arr = explode('.', $matches[1]);
                 $show       = (isset($switch_arr[1]) && !empty($switch_arr[1])) ? str_replace('/', '|', $switch_arr[1]) : 'ON|OFF'; // 开关显示文字
 
                 // 链接的处理
