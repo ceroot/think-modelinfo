@@ -244,6 +244,14 @@ class Base
     {
         $param = request()->param();
         $where = [];
+
+        // 排除软删除及超级管理员
+        $model_list          = $this->Original;
+        $Basics_modelname    = $model_list[0]['name'];
+        $Basics_model_fields = Db::name($Basics_modelname)->getFieldsType();
+        if (isset($Basics_model_fields['delete_time']) && session('manager_id') != 1) {
+            $where[] = ['delete_time', 'eq', '0'];
+        }
         // 默认搜索条件
         if (isset($param['like_seach']) && empty($param['like_seach']) && empty($param['seach_all']) && !$where_default) {
             if ($search_list = $this->info['search_list']) {
@@ -335,6 +343,7 @@ class Base
             }
             $where = array_combine($where_key, $where);
         }
+
         $this->info['where'] = $where;
         return $this;
 
@@ -462,14 +471,10 @@ class Base
             $order = $this->pk . ' desc';
         }
 
-        $param    = request()->param();
-        $listRows = isset($param['limit']) ? $param['limit'] : config('list_rows.');
-        $list     = $model->where($where)->order($order)->paginate($listRows); // 分页查询
-
-        if (is_object($list)) {
-            $list = $list->toArray();
-        }
-
+        $param              = request()->param();
+        $listRows           = isset($param['limit']) ? $param['limit'] : config('list_rows.');
+        $list               = $model->where($where)->order($order)->paginate($listRows); // 分页查询
+        $list               = is_object($list) ? $list->toArray() : $list;
         $this->info['data'] = $list;
         return $this;
     }

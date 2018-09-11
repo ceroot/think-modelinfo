@@ -50,7 +50,7 @@ class ModelInfo
                 ->getWhere()
                 ->getViewList()
                 ->parseIntTostring()
-                ->parseList()
+            // ->parseList()
                 ->parseListIntent()
                 ->getParam('info');
             // dump($Modelinfo);

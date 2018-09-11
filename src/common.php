@@ -65,6 +65,7 @@ function intent_list_field($data, $grid, $replace = false)
             $link_arr   = explode('|', $link);
             $link_value = $href = isset($link_arr[0]) ? $link_arr[0] : ''; // 取得左边的，比如[status]、[EDIT]
             $link_title = isset($link_arr[1]) ? $link_arr[1] : ''; // 取得右边的，比如{0.启用.updatefield?field=status&value=1&id=[id].dddd@ddd@ddd.快速设置状态 1.禁用.updatefield?field=status&value=0&id=[id]}
+            $extra      = isset($link_arr[2]) ? $link_arr[2] : '';
             $href       = ''; // 链接 url
             if (preg_match('#\{(.*?)\}#', $link_title, $matches)) {
                 preg_match('/^\[([a-z_]+)\]$/', $link_value, $mth);
@@ -118,15 +119,19 @@ function intent_list_field($data, $grid, $replace = false)
                     $event = strtolower($matches[1]);
                     $class .= 'layui-btn ';
                     $class .= ($event == 'details') ? 'layui-btn-primary' : '';
-                    $class .= ($event == 'edit') ? '' : '';
-                    $class .= ($event == 'view') ? 'layui-btn-normal' : '';
+                    $class .= ($event == 'edit') ? 'layui-btn-normal' : '';
+                    $class .= ($event == 'views') ? '' : '';
                     $class .= ($event == 'delete') ? 'layui-btn-danger' : '';
                     $class .= ' layui-btn-xs';
                 }
                 $href = isset($matches[0]) ? $matches[0] : '';
                 $href = $replace ? str_replace($replace['0'], $replace['1'], $href) : $href; // 替换系统特殊字符串
                 $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href); // 替换数据变量
-                $val[] = '<a title="' . $show . '" class="' . $class . '" lay-event="' . $event . '" url="' . url($href) . '">' . $show . '</a>';
+                // if (!empty($extra)) {
+                //     $extra = 'data-event="' . $event . '"';
+                // }
+
+                $val[] = '<a title="' . $show . '" class="' . $class . '" lay-event="' . $event . '"' . $extra . ' url="' . url($href) . '">' . $show . '</a>';
             } elseif (preg_match('/^\[([a-z_]+)\]$/', $link_value, $matches)) {
                 //直接显示内容
                 $val[] = $data2[$matches[1]];
