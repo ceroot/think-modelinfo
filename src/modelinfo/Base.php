@@ -31,11 +31,11 @@ class Base
     public $pk    = 'id'; // 主键
     public $scene = false; // 应用场景
     protected $options;
-    // 特殊字符串替换用于列表定义解析  详情   假删除     真删除       编辑      数据恢复      禁用         启用         更改字段
+    // 特殊字符串替换用于列表定义解析     详情       查看       假删除       真删除       编辑      数据恢复      禁用          启用         更改字段
     protected $replace_string = [['[DETAILS]', '[VIEWS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'views?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']];
 
     /*
-     * info数据初始化
+     * info 数据初始化
      */
     public function setInit()
     {
@@ -58,7 +58,7 @@ class Base
         }
         return $this;
     }
-    /*
+    /**
      * @title   字段类型extra属性解析
      * @param array  $fields      字段列表
      * @param array  $data        数据(为空  优先info.data info.field_default_value)
@@ -84,7 +84,7 @@ class Base
         $this->info['fields'] = $fields;
         return $this;
     }
-    /*
+    /**
      * 扩展字段解析
      * @param array $fields_extend 定义规则
      * @param array  $data        数据(为空  优先info.data info.field_default_value)
@@ -112,8 +112,9 @@ class Base
         $this->info['fields_extend'] = $fields_extend;
         return $this;
     }
-    /*
+    /**
      * 操作场景(控制器方法)
+     * @param
      * @author SpringYang <ceroot@163.com>
      */
     public function scene($scene = false)
@@ -123,7 +124,7 @@ class Base
         }
         return $this;
     }
-    /*
+    /**
      * @title 列表定义解析
      *  @Author: SpringYang <ceroot@163.com>
      */
@@ -232,7 +233,7 @@ class Base
         $this->info['field_default_value'] = $new_arr;
         return $this;
     }
-    /*
+    /**
      * @title   拼装搜索条件
      *
      * @$where_default [] 默认搜索条件 在所有请求查询条件的为空情况下启用设置怎不使用模型配置的条件
