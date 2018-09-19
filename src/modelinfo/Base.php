@@ -204,21 +204,25 @@ class Base
         foreach ($fields as $k => $v) {
             foreach ($v as $key => $value) {
                 if (isset($value['value'])) {
-                    if (0 === strpos($value['value'], ':') || 0 === strpos($value['value'], '[')) {
-                        if (!isset($data[$value['name']])) {
-                            $data[$value['name']] = '';
-                        }
-                        $value['value'] = parse_field_attr($value['value'], $data, $data[$value['name']]);
-                    }
-                    if (is_numeric($k)) {
-                        //数字下标字符串
-                        if (isset($data[$value['name']]) && !empty($data[$value['name']])) {
-                            $new_arr[$value['name']] = $data[$value['name']];
-                        } else {
-                            $new_arr[$value['name']] = $value['value'];
-                        }
+                    if (is_array($value['value'])) {
+                        $new_arr[$value['name']] = $value['value'];
                     } else {
-                        $new_arr[$k][$value['name']] = $value['value'];
+                        if (0 === strpos($value['value'], ':') || 0 === strpos($value['value'], '[')) {
+                            if (!isset($data[$value['name']])) {
+                                $data[$value['name']] = '';
+                            }
+                            $value['value'] = parse_field_attr($value['value'], $data, $data[$value['name']]);
+                        }
+                        if (is_numeric($k)) {
+                            //数字下标字符串
+                            if (isset($data[$value['name']]) && !empty($data[$value['name']])) {
+                                $new_arr[$value['name']] = $data[$value['name']];
+                            } else {
+                                $new_arr[$value['name']] = $value['value'];
+                            }
+                        } else {
+                            $new_arr[$k][$value['name']] = $value['value'];
+                        }
                     }
                 } else {
                     if (isset($data[$value['name']]) && !empty($data[$value['name']])) {
