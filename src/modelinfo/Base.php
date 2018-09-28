@@ -365,25 +365,25 @@ class Base
         switch (trim($exp)) {
             // 判断查询方式
             case 'neq':
-                $search_arr = [$name, 'neq', $value];
+                $search_arr[] = [$name, 'neq', $value];
                 break;
             case 'lt':
-                $search_arr = [$name, 'lt', $value];
+                $search_arr[] = [$name, 'lt', $value];
                 break;
             case 'elt':
-                $search_arr = [$name, 'elt', $value];
+                $search_arr[] = [$name, 'elt', $value];
                 break;
             case 'gt':
-                $search_arr = [$name, 'gt', $value];
+                $search_arr[] = [$name, 'gt', $value];
                 break;
             case 'egt':
-                $search_arr = [$name, 'egt', $value];
+                $search_arr[] = [$name, 'egt', $value];
                 break;
             case 'like':
-                $search_arr = [$name, 'like', "%" . $value . "%"];
+                $search_arr[] = [$name, 'like', "%" . $value . "%"];
                 break;
             default:
-                $search_arr = [$name, 'eq', $value];
+                $search_arr[] = [$name, 'eq', $value];
                 break;
         }
         return $search_arr;
@@ -478,7 +478,7 @@ class Base
 
         $param              = request()->param();
         $listRows           = isset($param['limit']) ? $param['limit'] : config('list_rows.');
-        $list               = $model->where($where)->order($order)->paginate($listRows); // 分页查询
+        $list               = $model->removeOption()->where($where)->order($order)->paginate($listRows); // 分页查询
         $list               = is_object($list) ? $list->toArray() : $list;
         $this->info['data'] = $list;
         return $this;
