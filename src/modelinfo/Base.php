@@ -31,8 +31,29 @@ class Base
     public $pk    = 'id'; // 主键
     public $scene = false; // 应用场景
     protected $options;
+    protected $replace_string; // 特殊字符串替换用于列表定义解析
     // 特殊字符串替换用于列表定义解析     详情       查看       假删除       真删除       编辑      数据恢复      禁用          启用         更改字段
-    protected $replace_string = [['[DETAILS]', '[VIEWS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'views?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']];
+    // protected $replace_string = [['[DETAILS]', '[VIEWS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'views?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=status&value=0&id=[id]', 'updatefield?field=status&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']];
+
+    // protected $replace_string = [['[DETAILS]', '[VIEWS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?edit_id=[edit_id]', 'views?edit_id=[edit_id]', 'del?edit_id=[edit_id]', 'destroy?edit_id=[edit_id]', 'edit?edit_id=[edit_id]', 'recovery?edit_id=[edit_id]', 'updatefield?field=status&value=0&edit_id=[edit_id]', 'updatefield?field=status&value=1&edit_id=[edit_id]', 'updatefield?field=[field]&edit_id=[edit_id]']];
+
+    public function __construct()
+    {
+        // 特殊字符串替换用于列表定义解析  详情       查看       假删除       真删除       编辑      数据恢复      禁用          启用         更改字段
+        $this->replace_string = [['[DETAILS]', '[VIEWS]', '[DELETE]', '[DESTROY]', '[EDIT]', '[RECOVERY]', '[DISABLE]', '[ENABLE]', '[UPDATEFIELD]'], ['details?id=[id]', 'views?id=[id]', 'del?id=[id]', 'destroy?id=[id]', 'edit?id=[id]', 'recovery?id=[id]', 'updatefield?field=' . authcode('status') . '&value=0&id=[id]', 'updatefield?field=' . authcode('status') . '&value=1&id=[id]', 'updatefield?field=[field]&id=[id]']];
+
+        $ddd = [
+            '[DETAILS]'     => 'details?id=[id]', // 详情
+            '[VIEWS]'       => 'views?id=[id]', // 查看
+            '[EDIT]'        => 'edit?id=[id]', // 编辑
+            '[DELETE]'      => 'del?id=[id]', // 假删除
+            '[DESTROY]'     => 'destroy?id=[id]', // 真删除
+            '[RECOVERY]'    => 'recovery?id=[id]', // 数据恢复
+            '[DISABLE]'     => 'updatefield?field=' . authcode('status') . '&value=0&id=[id]', // 禁用
+            '[ENABLE]'      => 'updatefield?field=' . authcode('status') . '&value=1&id=[id]', // 启用
+            '[UPDATEFIELD]' => 'updatefield?field=[field]&id=[id]', // 更改字段
+        ];
+    }
 
     /*
      * info 数据初始化
@@ -555,6 +576,37 @@ class Base
         $this->info['page'] = $page;
         return $this;
     }
+
+    public function getList($where = false)
+    {
+        $param = request()->param();
+        if (!$where) {
+            $where = $this->info['where'];
+        }
+
+        // 模型列表
+        $model_list       = $this->Original;
+        $Basics_modelname = $model_list[0]['name'];
+        // $Basics_model_fields = Db::name($Basics_modelname)->getTableFields();
+        $query_modelobj = App::model($Basics_modelname);
+
+        $order    = $this->pk . ' desc';
+        $listRows = isset($param['limit']) ? $param['limit'] : config('list_rows');
+        // 分页查询
+        // $list = $query_modelobj->where($where)->order($order)->field($field)->paginate($listRows);
+        $list = $query_modelobj->removeOption()->where($where)->order($order)->paginate($listRows);
+
+        // 获取分页显示
+        $page = $list->render();
+        if (is_object($list)) {
+            $list = $list->toArray();
+        }
+        // dump($list);
+        $this->info['data'] = $list;
+        $this->info['page'] = $page;
+        return $this;
+    }
+
     /**
      * 实例化模型列表的模型对象
      * @param string    $layer 业务层名称
@@ -888,6 +940,7 @@ class Base
         $this->info['data']['data'] = $list;
         return $this;
     }
+
     /**
      * 对列表数据进行列表解析
      * @param array $list 列表数据
@@ -905,15 +958,25 @@ class Base
             isset($this->info['list_field']) ? $this->info['list_field'] : $this->getListField();
             $list_field = $this->info['list_field'];
         }
+        // dump($this->info);die;
         if (empty($replace_string) && isset($this->info['replace_string']) && !empty($this->info['replace_string'])) {
             $replace_string = $this->info['replace_string'];
         } elseif (empty($replace_string)) {
             $replace_string = $this->replace_string;
         }
+        if (!isset($this->info['pk_value_encryption'])) {
+            $this->info['pk_value_encryption'] = true;
+        }
         // dump($list_field);
         $list_data_new = [];
         if (is_array($list)) {
             foreach ($list as $k => $v) {
+                if (!isset($v['edit_id'])) {
+                    $v['edit_id'] = authcode($v[$this->pk]);
+                }
+                if (isset($v[$this->pk]) && $this->info['pk_value_encryption']) {
+                    $v[$this->pk] = authcode($v[$this->pk]);
+                }
                 foreach ($list_field as $key => $value) {
                     // $list_data_new[$k][$key+1] = intent_list_field($v,$value,$replace_string);
                     $list_data_new[$k][$value['name']] = intent_list_field($v, $value, $replace_string);

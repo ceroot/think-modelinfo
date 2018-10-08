@@ -49,11 +49,13 @@ class ModelInfo
                 ->getSearchList()
                 ->getWhere()
                 ->getViewList()
+            // ->getList()
                 ->parseIntTostring()
             // ->parseList()
                 ->parseListIntent()
                 ->getParam('info');
-            // dump($Modelinfo);
+            dump($Modelinfo);
+
             die;
         }
         if (Request()->isPost()) {
@@ -61,6 +63,7 @@ class ModelInfo
                 ->getSearchList()
                 ->getWhere()
                 ->getViewList()
+            // ->getList()
                 ->parseIntTostring()
             // ->parseList()
                 ->parseListIntent()
@@ -96,11 +99,12 @@ class ModelInfo
      */
     public function getEdit($model_info, $where = false, $layer = 'model')
     {
-        $param = Request()->param();
+        $param     = Request()->param();
+        $model_obj = $this->info($model_info, true, true);
+        // dump($model_obj);die;
         if (!$where) {
             $where = ['id' => $param['id']];
         }
-        $model_obj  = $this->info($model_info, true, true);
         $model_info = $model_obj->getFields()->getQueryModel($layer)->getFind($where)->setInit()->getParam('info');
         return $model_info;
     }

@@ -90,7 +90,7 @@ function intent_list_field($data, $grid, $replace = false)
                 }
 
                 $href = str_replace($replace['0'], $replace['1'], $href); // 替换系统特殊字符串
-                $href = str_replace('[field]', $field_name, $href); // 替换字段名
+                $href = str_replace('[field]', authcode($field_name), $href); // 替换字段名
                 $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href); // 替换数据变量
                 $val[] = $ddd = '<a title="' . $quickTitle . '" class="' . $class . '" href="' . url($href) . '">' . $show . '</a>'; // 组合 html
             } elseif (preg_match('#\<(.*?)\>#', $link_title, $matches)) {
@@ -105,7 +105,7 @@ function intent_list_field($data, $grid, $replace = false)
                 // 链接的处理
                 if (isset($switch_arr[2]) && !empty($switch_arr[2])) {
                     $href = str_replace($replace['0'], $replace['1'], $switch_arr[2]); // 替换系统特殊字符串
-                    $href = str_replace('[field]', $field_name, $href); // 替换字段名
+                    $href = str_replace('[field]', authcode($field_name), $href); // 替换字段名
                 }
                 $href = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($data) {return isset($data[$match[1]]) ? $data[$match[1]] : '';}, $href); // 替换数据变量
 
