@@ -103,9 +103,10 @@ class ModelInfo
         $model_obj = $this->info($model_info, true, true);
         // dump($model_obj);die;
         if (!$where) {
-            $where = ['id' => $param['id']];
+            $where = ['id' => deauthcode($param['id'])];
         }
         $model_info = $model_obj->getFields()->getQueryModel($layer)->getFind($where)->setInit()->getParam('info');
+
         return $model_info;
     }
     /**

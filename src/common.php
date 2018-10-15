@@ -180,6 +180,7 @@ function parseFunctionString($matches, $str, $data)
  */
 function parse_field_attr_param($array, $data)
 {
+
     foreach ($array as &$value) {
         if (is_array($value)) {
             $value = parse_field_attr_param($value, $data);

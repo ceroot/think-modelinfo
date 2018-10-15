@@ -61,22 +61,27 @@ class Base
     public function setInit()
     {
         $info = $this->info;
+
         // field_group
         if (isset($info['field_group'])) {
             $this->info['field_group'] = parse_config_attr($this->info['field_group']);
         }
+
         // fields:default_value
         if (!isset($info['field_default_value']) && isset($info['fields'])) {
             $this->FieldDefaultValue();
         }
+
         //fields:extra
         if (isset($info['fields'])) {
             $this->setExtra($this->info['fields']);
         }
+
         //fields_extend:extra
         if (isset($info['fields_extend'])) {
             $this->setFieldsExtend($this->info['fields_extend']);
         }
+
         return $this;
     }
     /**
@@ -95,6 +100,7 @@ class Base
         if (empty($data) && isset($this->info['data'])) {
             $data = $this->info['data'];
         }
+        // dump($data);
         foreach ($fields as $key => &$value) {
             foreach ($value as $k => &$v) {
                 if (isset($v['extra']) && !empty($v['extra'])) {
@@ -271,6 +277,22 @@ class Base
         $param = request()->param();
         $where = [];
 
+        // dump($param);
+        // unset($param['show']);
+
+        // $where[] = ['model_id', '=', 3];
+        if (is_array($param)) {
+            $this->getTablePrefixFields('', false);
+            $tableField = $this->info['TablePrefixFields'];
+
+            foreach ($param as $key => $value) {
+                if (isset($tableField[$key])) {
+                    $where[] = [$key, '=', $value];
+                }
+
+            }
+        }
+
         // 排除软删除及超级管理员
         $model_list          = $this->Original;
         $Basics_modelname    = $model_list[0]['name'];
@@ -278,6 +300,7 @@ class Base
         if (isset($Basics_model_fields['delete_time']) && session('manager_id') != 1) {
             $where[] = ['delete_time', 'eq', '0'];
         }
+
         // 默认搜索条件
         if (isset($param['like_seach']) && empty($param['like_seach']) && empty($param['seach_all']) && !$where_default) {
             if ($search_list = $this->info['search_list']) {
@@ -350,15 +373,18 @@ class Base
             // $where[$this->pk] = [$this->pk, 'gt', 0];
             $where[] = [$this->pk, 'gt', 0];
         }
+
         // 固定搜索
         if ($where_solid) {
             $where += $where_solid;
         }
+
         if (isset($this->info['search_fixed'])) {
             foreach ($this->info['search_fixed'] as $value) {
                 $where[] = $this->QueryExpression($value['exp'], $value['name'], $value['value']);
             }
         }
+
         // 是否关联查询
         if ($relation) {
             $this->getTablePrefixFields();
@@ -422,8 +448,9 @@ class Base
         }
         if (empty($where)) {
             $param   = Request::param();
-            $where[] = [$this->pk, 'in', $param['id']];
+            $where[] = [$this->pk, 'in', deauthcode($param['id'])];
         }
+
         $data = [];
         foreach ($this->QueryModel as $key => $value) {
             $arr = [];
@@ -431,6 +458,7 @@ class Base
                 $data += $arr->toArray();
             }
         }
+
         $this->info['data'] = $data;
         return $this;
     }
@@ -572,6 +600,7 @@ class Base
         if (is_object($list)) {
             $list = $list->toArray();
         }
+
         $this->info['data'] = $list;
         $this->info['page'] = $page;
         return $this;
