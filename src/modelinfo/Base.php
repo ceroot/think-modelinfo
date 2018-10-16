@@ -448,11 +448,15 @@ class Base
         }
         if (empty($where)) {
             $param   = Request::param();
-            $where[] = [$this->pk, 'in', deauthcode($param['id'])];
+            $id      = (deauthcode($param['id']) == '') ? $param['id'] : deauthcode($param['id']);
+            $where[] = [$this->pk, 'in', $id];
         }
 
+        // dump($this->QueryModel);
+
         $data = [];
-        foreach ($this->QueryModel as $key => $value) {
+        foreach ($this->QueryModel as $value) {
+            // dump($value);
             $arr = [];
             if ($arr = $value->where($where)->find()) {
                 $data += $arr->toArray();
@@ -644,12 +648,12 @@ class Base
      * @return $this
      * @Author: SpringYang <ceroot@163.com>
      */
-    public function getQueryModel($layer = 'model', $base = 'Base', $appendSuffix = false, $common = 'common')
+    public function getQueryModel($layer = 'model', $base = 'Extend', $appendSuffix = false, $common = 'common')
     {
         $model_list = $this->Original;
         foreach ($model_list as $key => $value) {
             $name    = $value['name'];
-            $model[] = $this->getModelClass($name, $layer, 'Base', false, 'common');
+            $model[] = $this->getModelClass($name, $layer, $base, false, 'common');
         }
         $this->QueryModel = $model;
         return $this;
@@ -664,7 +668,7 @@ class Base
      * @return object
      * @Author: SpringYang <ceroot@163.com>
      */
-    public function getModelClass($name = '', $layer = 'model', $base = 'Base', $appendSuffix = false, $common = 'common')
+    public function getModelClass($name = '', $layer = 'model', $base = 'Extend', $appendSuffix = false, $common = 'common')
     {
         try {
             $new_name = Loader::parseName($name, 1);

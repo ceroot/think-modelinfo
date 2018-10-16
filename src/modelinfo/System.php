@@ -27,23 +27,31 @@ class System extends Base
             $model_config_id = $model_id['model_config_id'];
             $model_id        = $model_id['model_id'];
         }
-        //获取子父级模型
-        $model_list          = $this->get_parent_model($model_id);
-        $model_config        = model('model_config')->field('title', true)->find($model_config_id);
-        $replace_string_text = $model_config->replace_string_text;
-        if (is_object($model_config)) {
-            $model_config = $model_config->toArray();
-        }
-        $model_config['replace_string'] = $replace_string_text;
-        $model_list[0]                  = array_merge($model_list[0], $model_config);
-        $this->Original                 = $model_list;
 
-        $model_list = Array_mapping($model_list, 'id');
-        $modelinfo  = $model_list[$model_config_id];
+        //获取子父级模型
+        $model_list = $this->get_parent_model($model_id);
+
+        // $model_config        = model('model_config')->field('title', true)->find($model_config_id);
+        // $replace_string_text = $model_config->replace_string_text;
+        // if (is_object($model_config)) {
+        //     $model_config = $model_config->toArray();
+        // }
+        // $model_config['replace_string'] = $replace_string_text;
+        // $model_list[0]                  = array_merge($model_list[0], $model_config);
+
+        $model_list[0]['model_id'] = $model_id;
+        // dump($model_list);
+        $this->Original = $model_list;
+        // dump($model_list);
+        $model_list = Array_mapping($model_list, 'id'); // 反把 id 作为键值
+
+        // $modelinfo = $model_list[$model_config_id];
+        $modelinfo = $model_list[$model_id];
 
         //系统模型默认参数配置
         $modelinfo['url'] = request()->url();
-        $this->info       = $modelinfo;
+        // dump($modelinfo);die;
+        $this->info = $modelinfo;
 
         return $this;
     }
@@ -58,13 +66,13 @@ class System extends Base
         if (empty($cid)) {
             return false;
         }
-        $cates = db('Model')->where('status', 'eq', 1)->select();
+        $cates = db('Model')->where('status', 'eq', 0)->select();
         $child = db('Model')->getById($cid); //获取参数模型的信息
         if (!$child) {
             throw new Exception("模型id:{$cid}不存在");
         }
         $pid   = $child['extend'];
-        $temp  = array();
+        $temp  = [];
         $res[] = $child;
         while (true) {
             foreach ($cates as $key => $cate) {
@@ -150,15 +158,19 @@ class System extends Base
      * @return $this
      * @Author: SpringYang <ceroot@163.com>
      */
-    public function getFields($model_id = '', $model_config_id = '')
+    public function getFields($model_id = '')
     {
         if (!$model_id) {
             $model_id = $this->Original[0]['model_id'];
         }
-        if (!$model_config_id) {
-            $model_config_id = $this->Original[0]['id'];
-        }
-        $fields = get_model_attribute($model_id, $model_config_id);
+        // dump($this->Original);
+        // die;
+        // if (!$model_config_id) {
+        //     $model_config_id = $this->Original[0]['id'];
+        // }
+        // $fields = get_model_attribute($model_id, $model_config_id);
+        $fields = model('Model')->getModelAttribute($model_id);
+
         foreach ($fields as $key => $value) {
             $data_name = array_column($value, 'name');
             if (count($data_name) == count(array_filter($data_name))) {
@@ -166,6 +178,8 @@ class System extends Base
             }
 
         }
+        // dump($this->info);
+        // die;
         return $this;
     }
     /*
