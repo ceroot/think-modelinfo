@@ -10,6 +10,8 @@
 namespace ceroot\modelinfo;
 
 use think\Exception;
+use think\facade\App;
+use think\facade\Request;
 
 /*
  * @title 系统(动态)模型处理类用与后台系统模型的处理 非静态模型
@@ -23,35 +25,123 @@ class System extends Base
      */
     public function info($model_id = '', $model_config_id = '')
     {
+        debug('begin');
         if (is_array($model_id)) {
-            $model_config_id = $model_id['model_config_id'];
             $model_id        = $model_id['model_id'];
+            $model_config_id = $model_id['model_config_id'];
         }
 
-        //获取子父级模型
-        $model_list = $this->get_parent_model($model_id);
+        if ($action == '') {
+            $action = Request::action();
+            $action = 'add';
 
-        // $model_config        = model('model_config')->field('title', true)->find($model_config_id);
+        }
+
+        //获取父级模型
+        $model_list = $this->get_parent_model($model_id);
+        // dump($model_list);
+
+        $newArr       = [];
+        $_field_sort  = [];
+        $model_id_all = [];
+
+        foreach ($model_list as &$value) {
+            $model_id_all[] = $value['id'];
+            $_temp          = json_decode($value['field_sort'], true);
+
+            if (count($_temp) > count($_field_sort)) {
+                $max = $_temp;
+                $min = $_field_sort;
+            } else {
+                $max = $_field_sort;
+                $min = $_temp;
+            }
+
+            foreach ($max as $k => &$val) {
+                if (isset($min[$k])) {
+                    $val = array_unique(array_merge($min[$k], $val));
+                }
+            }
+
+            $_field_sort = $max;
+
+            $value['field_sort'] = $_field_sort = $max;
+            $newArr              = array_merge($newArr, $value);
+        }
+
+        $model_list                 = $newArr;
+        $model_list['model_id_all'] = $model_id_all;
+
+        // dump($model_list);
+
+        // $model_config = model('model_config')->field('title', true)->find($model_config_id);
         // $replace_string_text = $model_config->replace_string_text;
         // if (is_object($model_config)) {
         //     $model_config = $model_config->toArray();
         // }
         // $model_config['replace_string'] = $replace_string_text;
-        // $model_list[0]                  = array_merge($model_list[0], $model_config);
+        // dump($model_config);
 
-        $model_list[0]['model_id'] = $model_id;
-        // dump($model_list);
-        $this->Original = $model_list;
-        // dump($model_list);
-        $model_list = Array_mapping($model_list, 'id'); // 反把 id 作为键值
+        if ($model_config_id) {
+            $map[] = ['id', 'eq', $model_config_id];
+        } else {
+            $map[] = ['model_id', 'eq', $model_id];
+            $map[] = ['action', 'eq', $action];
+        }
 
+        $model_config = App::model('model_config')->where($map)->find();
+
+        if ($model_config) {
+            if (is_object($model_config)) {
+                $model_config = $model_config->toArray();
+            }
+
+            $_field_sort_1 = $model_list['field_sort'];
+            $_field_sort_2 = json_decode($model_config['field_sort'], true);
+
+            if (count($_field_sort_1) > count($_field_sort_2)) {
+                $max = $_field_sort_1;
+                $min = $_field_sort_2;
+            } else {
+                $max = $_field_sort_2;
+                $min = $_field_sort_1;
+            }
+
+            foreach ($max as $k => &$val) {
+                if (isset($min[$k])) {
+                    $val = array_unique(array_merge($min[$k], $val));
+                }
+            }
+
+            // dump($max);die;
+            $model_list                    = array_merge($model_list, $model_config);
+            $model_list['field_sort']      = $max;
+            $model_list['model_config_id'] = $model_config['id'];
+        } else {
+            if (!isset($model_list['model_id'])) {
+                $model_list['model_id'] = $model_id;
+            }
+            if (!isset($model_list['model_config_id'])) {
+                $model_list['model_config_id'] = '';
+            }
+        }
+
+        // dump($model_list);
+        // debug('end');
+        // $debug = debug('begin', 'end') . 's';
+        // dump($debug);die;
+
+        $this->Original[0] = $model_list;
+        // dump($model_list);
+        // $model_list = Array_mapping($model_list, 'id'); // 反把 id 作为键值
+        // dump($model_list);
         // $modelinfo = $model_list[$model_config_id];
-        $modelinfo = $model_list[$model_id];
 
         //系统模型默认参数配置
-        $modelinfo['url'] = request()->url();
+        // $modelinfo['url']  = request()->url();
+        $model_list['url'] = request()->url();
         // dump($modelinfo);die;
-        $this->info = $modelinfo;
+        $this->info = $model_list;
 
         return $this;
     }
@@ -66,8 +156,8 @@ class System extends Base
         if (empty($cid)) {
             return false;
         }
-        $cates = db('Model')->where('status', 'eq', 0)->select();
-        $child = db('Model')->getById($cid); //获取参数模型的信息
+        $cates = \Db::name('Model')->where('status', 'eq', 0)->select();
+        $child = \Db::name('Model')->getById($cid); //获取参数模型的信息
         if (!$child) {
             throw new Exception("模型id:{$cid}不存在");
         }
@@ -158,18 +248,18 @@ class System extends Base
      * @return $this
      * @Author: SpringYang <ceroot@163.com>
      */
-    public function getFields($model_id = '')
+    public function getFields($model_id = '', $model_config_id = '')
     {
         if (!$model_id) {
             $model_id = $this->Original[0]['model_id'];
         }
         // dump($this->Original);
         // die;
-        // if (!$model_config_id) {
-        //     $model_config_id = $this->Original[0]['id'];
-        // }
+        if (!$model_config_id) {
+            $model_config_id = $this->Original[0]['model_config_id'];
+        }
         // $fields = get_model_attribute($model_id, $model_config_id);
-        $fields = model('Model')->getModelAttribute($model_id);
+        $fields = model('Model')->getModelAttribute($model_id, $model_config_id);
 
         foreach ($fields as $key => $value) {
             $data_name = array_column($value, 'name');
