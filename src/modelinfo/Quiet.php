@@ -125,29 +125,6 @@ class Quiet extends Base
         }
         return $this;
     }
-    /*
-     * @title 获取button组
-     * @param $button 按钮规则
-     * @Author: SpringYang <ceroot@163.com>
-     */
-    public function getButton($button = '')
-    {
-        if (empty($button)) {
-            $button = $this->Original[0]['button'];
-        }
-        if (!empty($button)) {
-            $param = request()->param();
-            foreach ($button as $key => &$value) {
-                // 替换数据变量
-                $url = preg_replace_callback('/\[([a-z_]+)\]/', function ($match) use ($param) {
-                    return isset($param[$match[1]]) ? $param[$match[1]] : '';
-                }, $value['url']);
-                $value['url'] = url($url, '', false);
-            }
-            $this->info['button'] = $button;
-        }
-        return $this;
-    }
 
     /*
      * @title 列表定义解析
@@ -162,59 +139,6 @@ class Quiet extends Base
             unset($this->info['list_grid']);
         }
         return parent::getListField($list_grid);
-    }
-
-    /*
-     * @title 获取高级搜索配置
-     * @Author: SpringYang <ceroot@163.com>
-     */
-    public function getSearchList()
-    {
-        $search_arr = isset($this->info['search_list']) ? $this->info['search_list'] : [];
-        // value extra规则解析
-        foreach ($search_arr as $key => &$value) {
-            if (0 === strpos($value['value'], ':') || 0 === strpos($value['value'], '[')) {
-                $value['value'] = parse_field_attr($value['value']);
-            }
-            if (!empty($value['extra'])) {
-                $value['extra'] = parse_field_attr($value['extra']);
-            }
-        }
-        $this->info['search_list'] = $search_arr;
-        $this->getSearchFixed(); // 调用固定搜索
-        return $this;
-    }
-
-    /*
-     * @title 获取固定搜索配置
-     * @param $search_fixed 固定搜索配置
-     * @Author: SpringYang <ceroot@163.com>
-     */
-    public function getSearchFixed($search_fixed = false)
-    {
-        if (!$search_fixed) {
-            $search_fixed = isset($this->info['search_fixed']) ? $this->info['search_fixed'] : [];
-        }
-        $param = request()->param();
-        // value规则解析
-        foreach ($search_fixed as $key => &$value) {
-            if (0 === strpos($value['value'], ':') || 0 === strpos($value['value'], '[')) {
-                $string = $value['value'];
-                $str    = substr($string, 1);
-                if (0 === strpos($str, '[')) {
-                    if (preg_match('/\[([a-z_]+)\]/', $str, $matches)) {
-                        if (!isset($param[$matches['1']])) {
-                            unset($search_fixed[$key]);
-                            continue;
-                        }
-                    }
-                }
-                $value['value'] = parse_field_attr($string);
-            }
-        }
-
-        $this->info['search_fixed'] = $search_fixed;
-        return $this;
     }
 
     /*
