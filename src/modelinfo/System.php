@@ -9,7 +9,8 @@
 
 namespace ceroot\modelinfo;
 
-use think\Exception;
+use app\common\model\Model as ModelModel;
+use app\console\model\ModelConfig;
 use think\facade\Request;
 
 /*
@@ -30,66 +31,56 @@ class System extends Base
             $model_config_id = $model_id['model_config_id'];
         }
 
-        //获取父级模型
-        $model_list = $this->get_parent_model($model_id);
+        $not_field = ['create_ip', 'create_uid', 'create_uid', 'create_time', 'update_ip', 'update_uid', 'update_time', 'delete_ip', 'delete_uid', 'delete_time'];
 
-        // 模型数据合并
-        $newArr       = [];
-        $model_id_all = [];
-        foreach ($model_list as &$value) {
-            $model_id_all[] = $value['id'];
-            $newArr         = array_merge($newArr, $value);
+        $model_info        = (new ModelModel())->field($not_field, true)->find($model_id);
+        $this->Original[0] = $model_info;
+
+        // 模型配置处理
+        // 模型配置查询条件
+        $map[] = ['model_id', 'eq', $model_id];
+        if ($model_config_id === '') {
+            $action = Request::action();
+            $map[]  = ['action', 'eq', strtolower($action)];
+        } else {
+            if (is_numeric($model_config_id)) {
+                $map[] = ['id', 'eq', $model_config_id];
+            } else {
+                $map[]           = ['action', 'eq', strtolower($model_config_id)];
+                $model_config_id = '';
+            }
         }
 
-        $model_list                 = $newArr;
-        $model_list['model_id_all'] = $model_id_all;
+        // dump($map);
 
-        $model_list['model_id']        = $model_id;
-        $model_list['model_config_id'] = $model_config_id;
+        // 取得模型配置数据
+        $model_config = (new ModelConfig())->field(array_merge($not_field, ['not_field']), true)->where($map)->find();
+
+        // dump($model_config);
+        if ($model_config) {
+            if (is_object($model_config)) {
+                $model_config = $model_config->toArray();
+            }
+            $model_info = array_merge($model_info->toArray(), $model_config);
+
+            $model_config_id = $model_config['id'];
+        } else {
+            $model_config_id = '';
+        }
+
+        $model_info['model_id']        = $model_id;
+        $model_info['model_config_id'] = $model_config_id;
 
         // $debug = debug('begin', 'end') . 's';
         // dump($debug);die;
 
-        $this->Original[0] = $model_list;
-
         // 系统模型默认参数配置
-        $model_list['url'] = request()->url();
-        $this->info        = $model_list;
+        $model_info['url'] = request()->url();
+        $this->info        = $model_info;
 
         return $this;
     }
-    /*
-     * 获取模型参数的所有父级模型列表
-     * @param int $cid 模型id
-     * @return array 参数模型和父模型的信息集合
-     * @Author: SpringYang <ceroot@163.com>
-     */
-    public function get_parent_model($cid)
-    {
-        if (empty($cid)) {
-            return false;
-        }
-        $cates = \Db::name('Model')->where('status', 'eq', 0)->select();
-        $child = \Db::name('Model')->getById($cid); //获取参数模型的信息
-        if (!$child) {
-            throw new Exception("模型id:{$cid}不存在");
-        }
-        $pid   = $child['extend'];
-        $temp  = [];
-        $res[] = $child;
-        while (true) {
-            foreach ($cates as $key => $cate) {
-                if ($cate['id'] == $pid) {
-                    $pid = $cate['extend'];
-                    array_unshift($res, $cate); //将父模型插入到数组第一个元素前
-                }
-            }
-            if ($pid == 0) {
-                break;
-            }
-        }
-        return $res;
-    }
+
     /*
      * @title 列表定义解析
      * @param $list_grid 列表定义规则
@@ -114,14 +105,15 @@ class System extends Base
     public function getFields($model_id = '', $model_config_id = '')
     {
         if (!$model_id) {
-            $model_id = $this->Original[0]['model_id'];
+            $model_id = $this->info['model_id'];
         }
 
         if (!$model_config_id) {
-            $model_config_id = $this->Original[0]['model_config_id'];
+            $model_config_id = $this->info['model_config_id'];
         }
+        // dump($model_config_id);
         // $fields = get_model_attribute($model_id, $model_config_id);
-        $fields = model('Model')->getModelAttribute($model_id, $model_config_id);
+        $fields = (new ModelModel())->getModelAttribute($model_id);
 
         foreach ($fields as $key => $value) {
             $data_name = array_column($value, 'name');
@@ -130,6 +122,8 @@ class System extends Base
             }
 
         }
+
+        // die;
         return $this;
     }
 
